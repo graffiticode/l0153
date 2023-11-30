@@ -7,8 +7,7 @@ import { Form } from '../components/form';
 function isNonNullObject(obj) {
   return (
     typeof obj === "object" &&
-      obj !== null &&
-      Object.keys(JSON.parse(JSON.stringify(obj))).length !== 0
+      obj !== null
   );
 }
 
@@ -42,9 +41,9 @@ const View = (props = {}) => {
   };
 
   return (
-    isNonNullObject(state) &&
-      <Form state={state} /> ||
-      <div />
+    <div className="">
+      <Form state={state} />
+    </div>
   );
 }
 
