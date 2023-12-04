@@ -38,11 +38,8 @@ const View = (props = {}) => {
       }
     },
   };
-  console.log("View() state=" + JSON.stringify(state, null, 2));
   return (
-    state.doc &&
-      <Form state={state} /> ||
-      <div />
+    <Form state={state} />
   );
 }
 
