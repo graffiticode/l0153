@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
-import { Form } from '../components/form';
+import { Form } from '../components/form-nyt-1';
 
 function isNonNullObject(obj) {
   return (
@@ -23,27 +23,26 @@ const View = (props = {}) => {
     },
     compile
   );
-
   const state = {
     ...data,
     ...resp.data,
-    apply({ type, args = [] }) {
+    apply({ type, data = [] }) {
       // Apply actions to state.
       switch (type) {
       default:
         setData({
           ...state,
-          // updated data here
+          ...data,
         });
         break;
       }
     },
   };
-
+  console.log("View() state=" + JSON.stringify(state, null, 2));
   return (
-    <div className="">
-      <Form state={state} />
-    </div>
+    state.doc &&
+      <Form state={state} /> ||
+      <div />
   );
 }
 

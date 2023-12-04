@@ -1,3 +1,4 @@
+import assert from "assert";
 import {
   baseKeymap,
   chainCommands,
@@ -7,7 +8,7 @@ import {
   splitBlock,
 } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
-import { Schema, DOMParser } from "prosemirror-model";
+import { Schema, DOMParser, Node } from "prosemirror-model";
 import { liftListItem, splitListItem } from "prosemirror-schema-list";
 import { EditorState, Transaction } from "prosemirror-state";
 import "prosemirror-view/style/prosemirror.css";
@@ -75,7 +76,6 @@ function ListItem({ children }: NodeViewComponentProps) {
 
 function dataFromContent(ctx, content) {
   let data
-  console.log("dataFromContent() content=" + JSON.stringify(content));
   content.forEach((child, offset, index) => {
     const { type, content, text } = child;
     switch(type.name) {
@@ -121,7 +121,6 @@ function Editor({ state, reactNodeViews }) {
   const dispatchTransaction = useCallback(
     (tr: Transaction) => {
       setEditorState(oldState => oldState.apply(tr));
-      console.log("dispatchTransaction() mount=" + mount);
       if (mount) {
         const doc = DOMParser.fromSchema(schema).parse(mount);
         state.apply({
@@ -138,8 +137,6 @@ function Editor({ state, reactNodeViews }) {
     setShowEditor(true);
   }, []);
   
-  console.log("Form() showEditor=" + showEditor + " mount=" + mount);
-
   return (
     showEditor &&
       <main>
@@ -157,39 +154,34 @@ function Editor({ state, reactNodeViews }) {
   );
 }
 
-const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
-  paragraph: () => ({
-    component: Paragraph,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("span"),
-  }),
-  list: () => ({
-    component: List,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("div"),
-  }),
-  list_item: () => ({
-    component: ListItem,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("div"),
-  }),
-};
-
 export function Form({ state }) {
-  const [mount, setMount] = useState<HTMLElement | null>(null);
-  const [editorState, setEditorState] = useState(
-    EditorState.create({ schema })
-  );
-
+  assert(state.doc);
+  const [ mount, setMount ] = useState<HTMLElement | null>(null);
+  const doc = state.doc;
+  const [ editorState, setEditorState ] = useState(EditorState.create({
+    doc: Node.fromJSON(schema, doc),
+  }));
+  useEffect(() => {
+    state.apply({
+      type: "change",
+      data: {
+        doc: editorState.doc.toJSON()
+      },
+    });
+  }, [editorState]);
   return (
     <ProseMirror
       mount={mount}
       state={editorState}
-      dispatchTransaction={(tr) => {
-        setEditorState((s) => s.apply(tr));
-      }}
+      dispatchTransaction={
+        (tr) => {
+          setEditorState(s => s.apply(tr));
+        }
+      }
     >
       <div ref={setMount} />
-    </ProseMirror>
+    </ProseMirror> ||
+      <div />
   );
 }
+
