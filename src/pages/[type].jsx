@@ -39,7 +39,9 @@ const View = (props = {}) => {
     },
   };
   return (
-    <Form state={state} />
+    state.doc === undefined &&
+      <div /> ||
+      <Form state={state} />
   );
 }
 

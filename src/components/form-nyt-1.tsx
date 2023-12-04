@@ -10,10 +10,7 @@ import {
 
 import { schema } from "prosemirror-schema-basic";
 
-export function Form({ state }) {
-  if (state.doc === undefined) {
-    return <div />;
-  }
+export function Form({ state }: { state: any }) {
   const { doc } = state;
   const [ mount, setMount ] = useState<HTMLElement | null>(null);
   const [ editorState, setEditorState ] = useState(EditorState.create({
