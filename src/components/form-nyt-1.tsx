@@ -3,12 +3,15 @@ import { Schema, Node } from "prosemirror-model";
 import { EditorState, Transaction } from "prosemirror-state";
 import "prosemirror-view/style/prosemirror.css";
 import React, { useState, useEffect } from "react";
-
 import {
   ProseMirror,
 } from "@nytimes/react-prosemirror";
-
 import { schema } from "prosemirror-schema-basic";
+import { debounce } from "lodash";
+
+const debouncedApply = debounce(({ state, type, data }) => {
+  state.apply({type, data});
+}, 1000, {leading: true, trailing: true});
 
 export function Form({ state }: { state: any }) {
   const { doc } = state;
@@ -17,7 +20,8 @@ export function Form({ state }: { state: any }) {
     doc: Node.fromJSON(schema, doc),
   }));
   useEffect(() => {
-    state.apply({
+    debouncedApply({
+      state,
       type: "change",
       data: {
         doc: editorState.doc.toJSON()

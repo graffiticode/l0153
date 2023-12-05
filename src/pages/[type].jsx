@@ -15,6 +15,7 @@ const View = (props = {}) => {
   const router = useRouter();
   const { access_token: accessToken, id } = router.query;
   const [ data, setData ] = useState({});
+  const [ isCompiling, setIsCompiling ] = useState(true);
   const resp = useSWR(
     accessToken && id && {
       accessToken,
@@ -30,6 +31,7 @@ const View = (props = {}) => {
       // Apply actions to state.
       switch (type) {
       default:
+        setIsCompiling(!isCompiling);
         setData({
           ...state,
           ...data,
@@ -41,7 +43,13 @@ const View = (props = {}) => {
   return (
     state.doc === undefined &&
       <div /> ||
-      <Form state={state} />
+      <div>
+        { (isCompiling || resp.isLoading) &&
+          <div className="h-5 text-xs text-gray-400">Compiling...</div> ||
+          <div className="h-5 text-xs text-gray-400">Compiled</div>
+        }
+        <Form state={state} />
+      </div>
   );
 }
 
