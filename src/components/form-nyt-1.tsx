@@ -14,20 +14,20 @@ const debouncedApply = debounce(({ state, type, data }) => {
 }, 1000, {leading: true, trailing: true});
 
 export function Form({ state }: { state: any }) {
-  const { doc } = state;
   const [ mount, setMount ] = useState<HTMLElement | null>(null);
   const [ editorState, setEditorState ] = useState(EditorState.create({
-    doc: Node.fromJSON(schema, doc),
+    doc: Node.fromJSON(schema, state.doc),
   }));
+  const doc = editorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       data: {
-        doc: editorState.doc.toJSON()
+        doc,
       },
     });
-  }, [editorState]);
+  }, [JSON.stringify(doc)]);
   return (
     <ProseMirror
       mount={mount}

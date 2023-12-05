@@ -15,7 +15,7 @@ const View = (props = {}) => {
   const router = useRouter();
   const { access_token: accessToken, id } = router.query;
   const [ data, setData ] = useState({});
-  const [ isCompiling, setIsCompiling ] = useState(true);
+  const [ isSaving, setIsSaving ] = useState(true);
   const resp = useSWR(
     accessToken && id && {
       accessToken,
@@ -30,8 +30,8 @@ const View = (props = {}) => {
     apply({ type, data = [] }) {
       // Apply actions to state.
       switch (type) {
-      default:
-        setIsCompiling(!isCompiling);
+      case "change":
+        setIsSaving(!isSaving);
         setData({
           ...state,
           ...data,
@@ -44,9 +44,9 @@ const View = (props = {}) => {
     state.doc === undefined &&
       <div /> ||
       <div>
-        { (isCompiling || resp.isLoading) &&
-          <div className="h-5 text-xs text-gray-400">Compiling...</div> ||
-          <div className="h-5 text-xs text-gray-400">Compiled</div>
+        { (isSaving || resp.isLoading) &&
+          <div className="h-5 text-xs text-gray-400">Saving...</div> ||
+          <div className="h-5 text-xs text-gray-400"></div>
         }
         <Form state={state} />
       </div>
