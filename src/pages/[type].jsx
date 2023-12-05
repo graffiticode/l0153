@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
-import { Form } from '../components/form-nyt-1';
+//import { Form } from '../components/form-nyt-1';
+//import { Form } from '../components/form-nyt-2';
+//import { Form } from '../components/form-nyt-3';
+import { Form } from '../components/form-pm-basic';
 
 function isNonNullObject(obj) {
   return (
@@ -46,7 +49,7 @@ const View = (props = {}) => {
       <div>
         { (isSaving || resp.isLoading) &&
           <div className="h-5 text-xs text-gray-400">Saving...</div> ||
-          <div className="h-5 text-xs text-gray-400"></div>
+          <div className="h-5 text-xs text-gray-400">Saved</div>
         }
         <Form state={state} />
       </div>
