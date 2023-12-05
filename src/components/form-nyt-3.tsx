@@ -19,7 +19,6 @@ import {
   ProseMirror,
   useNodeViews,
   useEditorEventCallback,
-  NodeViewComponentProps,
   react,
   NodeViewComponentProps,
   ReactNodeViewConstructor,
@@ -43,9 +42,7 @@ const schema = new Schema({
 
 const initialEditorState = EditorState.create({
   doc: schema.topNodeType.create(null, [
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     schema.nodes.paragraph.createAndFill()!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     schema.nodes.list.createAndFill()!,
   ]),
   schema,
