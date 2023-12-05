@@ -20,8 +20,14 @@ const debouncedApply = debounce(({ state, type, data }) => {
 // create a schema with list support.
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
-  marks: schema.spec.marks
+  marks: schema.spec.marks,
 })
+
+/*
+  TODO
+  ----
+  -- Figure out why some transactions are not having an effect
+*/
 
 export function Form({ state }: { state: any }) {
   const [ mount, setMount ] = useState<HTMLElement | null>(null);
