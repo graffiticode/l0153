@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
@@ -15,7 +15,7 @@ const View = (props = {}) => {
   const router = useRouter();
   const { access_token: accessToken, id } = router.query;
   const [ data, setData ] = useState({});
-  const [ isCompiling, setIsCompiling ] = useState(true);
+  const [ isChanging, setIsChanging ] = useState(true);
   const resp = useSWR(
     accessToken && id && {
       accessToken,
@@ -30,12 +30,15 @@ const View = (props = {}) => {
     apply({ type, data = [] }) {
       // Apply actions to state.
       switch (type) {
-      default:
-        setIsCompiling(!isCompiling);
+      case "change":
+        // Called twice. When change starts and when change stops.
+        setIsChanging(!isChanging);
         setData({
           ...state,
           ...data,
         });
+        break;
+      default:
         break;
       }
     },
@@ -44,7 +47,7 @@ const View = (props = {}) => {
     state.doc === undefined &&
       <div /> ||
       <div>
-        { (isCompiling || resp.isLoading) &&
+        { (isChanging || resp.isLoading) &&
           <div className="h-5 text-xs text-gray-400">Compiling...</div> ||
           <div className="h-5 text-xs text-gray-400">Compiled</div>
         }
