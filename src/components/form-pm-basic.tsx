@@ -51,6 +51,7 @@ export function Form({ state }: { state: any }) {
       state={editorState}
       dispatchTransaction={
         (tr) => {
+          console.log("tr=" + JSON.stringify(tr, null, 2));
           setEditorState(s => s.apply(tr));
         }
       }

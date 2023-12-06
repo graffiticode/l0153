@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
 //import { Form } from '../components/form-nyt-1';
 //import { Form } from '../components/form-nyt-2';
-//import { Form } from '../components/form-nyt-3';
-import { Form } from '../components/form-pm-basic';
+import { Form } from '../components/form-nyt-3';
+//import { Form } from '../components/form-pm-basic';
 
 function isNonNullObject(obj) {
   return (
@@ -43,6 +43,7 @@ const View = (props = {}) => {
       }
     },
   };
+  console.log("View() state=" + JSON.stringify(state, null, 2));
   return (
     state.doc === undefined &&
       <div /> ||

@@ -9,7 +9,7 @@ import {
   splitBlock,
 } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
-import { Schema } from "prosemirror-model";
+import { Schema, Node } from "prosemirror-model";
 import { liftListItem, splitListItem } from "prosemirror-schema-list";
 import { EditorState, Transaction } from "prosemirror-state";
 import "prosemirror-view/style/prosemirror.css";
@@ -40,11 +40,12 @@ const schema = new Schema({
   },
 });
 
-const initialEditorState = EditorState.create({
-  doc: schema.topNodeType.create(null, [
-    schema.nodes.paragraph.createAndFill()!,
-    schema.nodes.list.createAndFill()!,
-  ]),
+const buildInitialEditorState = doc => EditorState.create({
+  // doc: schema.topNodeType.create(null, [
+  //   schema.nodes.paragraph.createAndFill()!,
+  //   schema.nodes.list.createAndFill()!,
+  // ]),
+  doc,
   schema,
   plugins: [
     keymap({
@@ -96,7 +97,8 @@ const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
 export function Form({ state }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [mount, setMount] = useState<HTMLDivElement | null>(null);
-  const [editorState, setEditorState] = useState(initialEditorState);
+  const [editorState, setEditorState] =
+        useState(buildInitialEditorState(Node.fromJSON(schema, state.doc)));
   const dispatchTransaction = useCallback(
     (tr: Transaction) => setEditorState((oldState) => oldState.apply(tr)),
     []
