@@ -38,9 +38,7 @@ const schema = new Schema({
 
 const editorState = EditorState.create({
   doc: schema.topNodeType.create(null, [
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     schema.nodes.paragraph.createAndFill()!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     schema.nodes.list.createAndFill()!,
   ]),
   schema,
