@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
 //import { Form } from '../components/form-nyt-1';
 //import { Form } from '../components/form-nyt-2';
-import { Form } from '../components/form-nyt-3';
-//import { Form } from '../components/form-pm-basic';
+//import { Form } from '../components/form-nyt-3';
+import { Form } from '../components/form-nyt-demo';
 
 function isNonNullObject(obj) {
   return (
@@ -18,7 +18,7 @@ const View = (props = {}) => {
   const router = useRouter();
   const { access_token: accessToken, id } = router.query;
   const [ data, setData ] = useState({});
-  const [ isChanging, setIsChanging ] = useState(true);
+  const [ isChanging, setIsChanging ] = useState(false);
   const resp = useSWR(
     accessToken && id && {
       accessToken,
@@ -47,7 +47,7 @@ const View = (props = {}) => {
     if (resp.isLoading) {
       setIsChanging(false);
     }
-  }, [resp.isLoading]);
+  }, [isChanging, resp.isLoading]);
   return (
     state.doc === undefined &&
       <div /> ||
