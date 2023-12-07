@@ -41,10 +41,6 @@ const schema = new Schema({
 });
 
 const buildInitialEditorState = doc => EditorState.create({
-  // doc: schema.topNodeType.create(null, [
-  //   schema.nodes.paragraph.createAndFill()!,
-  //   schema.nodes.list.createAndFill()!,
-  // ]),
   doc,
   schema,
   plugins: [

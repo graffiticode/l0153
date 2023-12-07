@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
@@ -18,7 +18,7 @@ const View = (props = {}) => {
   const router = useRouter();
   const { access_token: accessToken, id } = router.query;
   const [ data, setData ] = useState({});
-  const [ isSaving, setIsSaving ] = useState(true);
+  const [ isChanging, setIsChanging ] = useState(true);
   const resp = useSWR(
     accessToken && id && {
       accessToken,
@@ -34,7 +34,7 @@ const View = (props = {}) => {
       // Apply actions to state.
       switch (type) {
       case "change":
-        setIsSaving(!isSaving);
+        setIsChanging(true);
         setData({
           ...state,
           ...data,
@@ -43,12 +43,16 @@ const View = (props = {}) => {
       }
     },
   };
-  console.log("View() state=" + JSON.stringify(state, null, 2));
+  useEffect(() => {
+    if (resp.isLoading) {
+      setIsChanging(false);
+    }
+  }, [resp.isLoading]);
   return (
     state.doc === undefined &&
       <div /> ||
       <div>
-        { (isSaving || resp.isLoading) &&
+        { (isChanging || resp.isLoading) &&
           <div className="h-5 text-xs text-gray-400">Saving...</div> ||
           <div className="h-5 text-xs text-gray-400">Saved</div>
         }
