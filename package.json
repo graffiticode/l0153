@@ -6,7 +6,8 @@
     "dev": "next dev -p 50153",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build-spec": "npx spec-md ./docs/spec.md > ./public/spec.html"
   },
   "dependencies": {
     "@graffiticode/basis": "^1.2.0",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.27",
+    "spec-md": "^3.1.0",
     "tailwindcss": "^3.3.3"
   }
 }
