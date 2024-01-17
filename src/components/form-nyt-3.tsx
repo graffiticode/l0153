@@ -23,7 +23,6 @@ import {
   NodeViewComponentProps,
   ReactNodeViewConstructor,
 } from "@nytimes/react-prosemirror";
-
 import { debounce } from "lodash";
 
 const debouncedApply = debounce(({ state, type, data }) => {
@@ -92,8 +91,8 @@ const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
 
 export function Form({ state }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
-  const [mount, setMount] = useState<HTMLDivElement | null>(null);
-  const [editorState, setEditorState] =
+  const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
+  const [ editorState, setEditorState ] =
         useState(buildInitialEditorState(Node.fromJSON(schema, state.doc)));
   const dispatchTransaction = useCallback(
     (tr: Transaction) => setEditorState((oldState) => oldState.apply(tr)),
