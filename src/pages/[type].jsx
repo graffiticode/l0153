@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
 //import { Form } from '../components/form';
-import { Form } from '../components/nyt-demo';
+import { Form } from '../components/form-next';
 
 function isNonNullObject(obj) {
   return (

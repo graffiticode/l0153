@@ -28,91 +28,6 @@ import {
 } from "@nytimes/react-prosemirror";
 import { debounce } from "lodash";
 
-//import "./main.css";
-
-const schema = new Schema({
-  nodes: {
-    doc: { content: "block+" },
-    paragraph: {
-      group: "block",
-      content: "inline*",
-      toDOM() {
-        return ["p", 0];
-      },
-    },
-    img: {
-      group: "inline",
-      inline: true,
-      attrs: {
-        src: { default: "" },
-      },
-      toDOM(node) {
-        return [
-          "img",
-          {
-            src: node.attrs.src,
-          },
-        ];
-      },
-    },
-    list: {
-      group: "block",
-      content: "list_item+",
-      toDOM() {
-        return ["ul", 0];
-      },
-    },
-    list_item: {
-      content: "paragraph+",
-      toDOM() {
-        return ["li", 0];
-      },
-    },
-    text: { group: "inline" },
-  },
-  marks: {
-    em: {
-      toDOM() {
-        return ["em", 0];
-      },
-    },
-    strong: {
-      toDOM() {
-        return ["strong", 0];
-      },
-    },
-  },
-});
-
-const editorState = EditorState.create({
-  schema,
-  doc: schema.nodes.doc.create({}, [
-    schema.nodes.paragraph.create({}, [
-      schema.text("This ", [schema.marks.em.create()]),
-      schema.text("is", [
-        schema.marks.em.create(),
-        schema.marks.strong.create(),
-      ]),
-      schema.nodes.img.create({
-        src: "data:image/gif;base64,R0lGODlhBQAFAIABAAAAAP///yH5BAEKAAEALAAAAAAFAAUAAAIEjI+pWAA7",
-      }),
-      schema.text(" the first paragraph"),
-    ]),
-    schema.nodes.paragraph.create(
-      {},
-      schema.text("This is the second paragraph")
-    ),
-    schema.nodes.paragraph.create(),
-    schema.nodes.paragraph.create(
-      {},
-      schema.text("This is the third paragraph")
-    ),
-  ]),
-  plugins: [
-//    reactKeys()
-  ],
-});
-
 const TestWidget = forwardRef(function TestWidget(
   { widget, pos, ...props }: WidgetViewComponentProps,
   ref: ForwardedRef<HTMLSpanElement>
@@ -196,42 +111,72 @@ const widgetPlugin = new Plugin({
   },
 });
 
-const plugins = [
-  keymap({
-    ...baseKeymap,
-    "Mod-i": toggleMark(schema.marks.em),
-    "Mod-b": toggleMark(schema.marks.strong),
-  }),
-  viewPlugin,
-  // widgetPlugin,
-];
-
-function Editor() {
-  const [state, setState] = useState(editorState);
-  return (
-    <ProseMirror
-      as={<article />}
-      className="ProseMirror"
-      state={state}
-      dispatchTransaction={function (tr) {
-        setState((prev) => prev.apply(tr));
-      }}
-      plugins={plugins}
-    />
-  );
-}
+// const plugins = [
+//   keymap({
+//     ...baseKeymap,
+//     "Mod-i": toggleMark(schema.marks.em),
+//     "Mod-b": toggleMark(schema.marks.strong),
+//   }),
+//   viewPlugin,
+//   widgetPlugin,
+// ];
 
 const debouncedApply = debounce(({ state, type, data }) => {
-//  state.apply({type, data});
+  state.apply({type, data});
 }, 1000, {leading: true, trailing: true});
 
 const defaultSchemaSpec = {
   nodes: {
-    doc: {content: "paragraph+"},
-    paragraph: {content: "text*"},
-    text: {inline: true},
-    /* ... and so on */
-  }
+    doc: { content: "block+" },
+    paragraph: {
+      group: "block",
+      content: "inline*",
+      toDOM() {
+        return ["p", 0];
+      },
+    },
+    img: {
+      group: "inline",
+      inline: true,
+      attrs: {
+        src: { default: "" },
+      },
+      toDOM(node) {
+        return [
+          "img",
+          {
+            src: node.attrs.src,
+          },
+        ];
+      },
+    },
+    list: {
+      group: "block",
+      content: "list_item+",
+      toDOM() {
+        return ["ul", 0];
+      },
+    },
+    list_item: {
+      content: "paragraph+",
+      toDOM() {
+        return ["li", 0];
+      },
+    },
+    text: { group: "inline" },
+  },
+  marks: {
+    em: {
+      toDOM() {
+        return ["em", 0];
+      },
+    },
+    strong: {
+      toDOM() {
+        return ["strong", 0];
+      },
+    },
+  },
 };
 
 const buildInitialEditorState = (schema, doc) => EditorState.create({
@@ -253,15 +198,12 @@ const buildInitialEditorState = (schema, doc) => EditorState.create({
   ],
 });
 
-export function Form({ }) {
-  // const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
-  // const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
-  // const schemaSpec = defaultSchemaSpec;
-  // console.log("Form() schemaSpec=" + JSON.stringify(schemaSpec, null, 2));
-  // const [ schema ] = useState(new Schema(schemaSpec));
-  const [ state, setState ] = useState(editorState);
-  // const [ editorState, setEditorState ] =
-  //       useState(buildInitialEditorState(schema, Node.fromJSON(schema, state.doc)));
+export function Form({ state }) {
+  const schemaSpec = state.schemaSpec || defaultSchemaSpec;
+  const [ schema ] = useState(new Schema(schemaSpec));
+  const [ editorState, setEditorState ] = useState(
+    buildInitialEditorState(schema, Node.fromJSON(schema, state.doc))
+  );
   const dispatchTransaction = useCallback(
     (tr: Transaction) => setEditorState((oldState) => oldState.apply(tr)),
     []
@@ -280,23 +222,8 @@ export function Form({ }) {
     <ProseMirror
       as={<article />}
       className="ProseMirror"
-      state={state}
+      state={editorState}
       dispatchTransaction={dispatchTransaction}
-      plugins={plugins}
     />
-    // <Editor
-    //   state={state}
-    //   dispatchTransaction={dispatchTransaction} />
-    // <div>
-    //   <ProseMirror
-    //     mount={mount}
-    //     state={editorState}
-    //     nodeViews={nodeViews}
-    //     dispatchTransaction={dispatchTransaction}
-    //   >
-    //     <div ref={setMount} />
-    //     {renderNodeViews()}
-    //   </ProseMirror>
-    // </div>
   );
 }
