@@ -29,17 +29,34 @@ const debouncedApply = debounce(({ state, type, data }) => {
   state.apply({type, data});
 }, 1000, {leading: true, trailing: true});
 
-const schema = new Schema({
-  nodes: {
-    doc: { content: "block+" },
-    paragraph: { group: "block", content: "inline*" },
-    list: { group: "block", content: "list_item+" },
-    list_item: { content: "paragraph+", toDOM: () => ["li", 0] },
-    text: { group: "inline" },
-  },
-});
+// const schema = new Schema({
+//   nodes: {
+//     doc: { content: "text*" },
+//     text: {},
+//   },
+// });
 
-const buildInitialEditorState = doc => EditorState.create({
+const defaultSchemaSpec = {
+  nodes: {
+    doc: {content: "paragraph+"},
+    paragraph: {content: "text*"},
+    text: {inline: true},
+    /* ... and so on */
+  }
+};
+
+// const schema = new Schema({
+//   nodes: {
+//     doc: { content: "text*" },
+//     paragraph: { group: "block", content: "inline*" },
+//     list: { group: "block", content: "list_item+" },
+//     list_item: { content: "paragraph+", toDOM: () => ["li", 0] },
+//     text: {},
+//   },
+// });
+
+
+const buildInitialEditorState = (schema, doc) => EditorState.create({
   doc,
   schema,
   plugins: [
@@ -77,23 +94,26 @@ const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     dom: document.createElement("div"),
     contentDOM: document.createElement("span"),
   }),
-  list: () => ({
-    component: List,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("div"),
-  }),
-  list_item: () => ({
-    component: ListItem,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("div"),
-  }),
+  // list: () => ({
+  //   component: List,
+  //   dom: document.createElement("div"),
+  //   contentDOM: document.createElement("div"),
+  // }),
+  // list_item: () => ({
+  //   component: ListItem,
+  //   dom: document.createElement("div"),
+  //   contentDOM: document.createElement("div"),
+  // }),
 };
 
 export function Form({ state }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
+  const schemaSpec = state.schemaSpec || defaultSchemaSpec;
+  console.log("Form() schemaSpec=" + JSON.stringify(schemaSpec, null, 2));
+  const [ schema ] = useState(new Schema(schemaSpec));
   const [ editorState, setEditorState ] =
-        useState(buildInitialEditorState(Node.fromJSON(schema, state.doc)));
+        useState(buildInitialEditorState(schema, Node.fromJSON(schema, state.doc)));
   const dispatchTransaction = useCallback(
     (tr: Transaction) => setEditorState((oldState) => oldState.apply(tr)),
     []

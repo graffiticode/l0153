@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/router';
 import { compile } from '../swr/fetchers';
-import { Form } from '../components/form';
+//import { Form } from '../components/form';
+import { Form } from '../components/nyt-demo';
 
 function isNonNullObject(obj) {
   return (

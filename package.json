@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@graffiticode/basis": "^1.2.0",
-    "@nytimes/react-prosemirror": "^0.4.2",
+    "@nytimes/react-prosemirror": "^0.5.0-next.2",
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.8",

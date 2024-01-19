@@ -34,9 +34,6 @@ export class Transformer extends BasisTransformer {
         doc: {
           "type": "doc",
           "content": [
-            {
-              "type": "paragraph"
-            }
           ]
         },
         ...v0.pop(),
