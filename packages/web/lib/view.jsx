@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { Form } from "./components";
+import { Form, Editor } from "./components";
 import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
@@ -38,9 +38,9 @@ export const View = () => {
   }, [id]);
 
   const [ state ] = useState(createState({}, (data, { type, args }) => {
-    // console.log("L0002 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
+    // console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
     switch (type) {
-    case "compiled":
+    case "compile":
       return {
         ...data,
         ...args,
@@ -68,7 +68,7 @@ export const View = () => {
   if (dataResp.data) {
     assert(dataResp.data.data === undefined);
     state.apply({
-      type: "compiled",
+      type: "compile",
       args: dataResp.data,
     });
     setDoGetData(false);
@@ -86,7 +86,7 @@ export const View = () => {
   if (compileResp.data) {
     assert(compileResp.data.data === undefined);
     state.apply({
-      type: "compiled",
+      type: "compile",
       args: compileResp.data,
     });
     setRecompile(false);
@@ -94,7 +94,7 @@ export const View = () => {
 
   return (
     isNonNullNonEmptyObject(state.data) &&
-      <Form state={state} /> ||
+      <Editor state={state} /> ||
       <div />
   );
 }
