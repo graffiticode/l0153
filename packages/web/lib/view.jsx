@@ -38,7 +38,7 @@ export const View = () => {
   }, [id]);
 
   const [ state ] = useState(createState({}, (data, { type, args }) => {
-    // console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
+    console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
     switch (type) {
     case "compile":
       return {

@@ -109,10 +109,19 @@ const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
   }),
 };
 
+// TODO Construct reactNodeViews from initial state.data.doc.
+// TODO Pass reactNodeViews into editor. (See comment of
+//      react-prosemirror README: "Make sure that your
+//      ReactNodeViews are defined outside of your component,
+//      or are properly memoized. ProseMirror will teardown and
+//      rebuild all NodeViews if the nodeView prop is updated,
+//      leading to unbounded recursion if this object doesn't
+//      have a stable reference."
+
 export function Editor({ state }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
-  const [mount, setMount] = useState<HTMLDivElement | null>(null);
-  const [editorState, setEditorState] = useState(defaultState);
+  const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
+  const [ editorState, setEditorState ] = useState(defaultState);
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
       console.log("click"),
@@ -121,7 +130,6 @@ export function Editor({ state }) {
     []
   );
   const doc = editorState.doc.toJSON();
-  console.log("Editor() doc=" + JSON.stringify(doc, null, 2));
   useEffect(() => {
     debouncedApply({
       state,
@@ -144,8 +152,3 @@ export function Editor({ state }) {
     </ProseMirror>
   );
 }
-
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-// const root = createRoot(document.getElementById("root")!);
-
-// root.render(<DemoEditor />);
