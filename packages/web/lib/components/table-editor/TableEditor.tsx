@@ -81,7 +81,7 @@ const schema = new Schema({
           }
         },
         background: {
-          default: null,
+          default: "#fff",
           getFromDOM(dom) {
             return dom.style.backgroundColor || null;
           },
@@ -118,137 +118,37 @@ const tableMenu = [
 ];
 menu.splice(2, 0, [new Dropdown(tableMenu, { label: 'Table' })]);
 
-// const contentElement = document.querySelector('#content');
-// if (!contentElement) {
-//   throw new Error('Failed to find #content');
-// }
-// const doc = DOMParser.fromSchema(schema).parse(contentElement);
-
-// let defaultEditorState = EditorState.create({
-//   schema,
-//   plugins: [
-//     columnResizing(),
-//     tableEditing(),
-//     keymap({
-//       Tab: goToNextCell(1),
-//       'Shift-Tab': goToNextCell(-1),
-//     }),
-//     react(),    
-//   ].concat(
-//     exampleSetup({
-//       schema,
-//       menuContent: menu as MenuItem[][],
-//     }),
-//   ),
-// });
-
 function Paragraph({ children }: NodeViewComponentProps) {
-  return <p>{children}</p>;
+  return <p onClick={() => console.log('click')}>{children}</p>;
 }
-
-// function List({ children }: NodeViewComponentProps) {
-//   return <ul>{children}</ul>;
-// }
-
-// function ListItem({ children }: NodeViewComponentProps) {
-//   return <li>{children}</li>;
-// }
 
 const debouncedApply = debounce(({ state, type, args }) => {
   state.apply({type, args});
 }, 1000, {leading: true, trailing: true});
 
-// const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
-//   paragraph: () => ({
-//     component: Paragraph,
-//     dom: document.createElement("div"),
-//     contentDOM: document.createElement("span"),
-//   }),
-//   list: () => ({
-//     component: List,
-//     dom: document.createElement("div"),
-//     contentDOM: document.createElement("div"),
-//   }),
-//   list_item: () => ({
-//     component: ListItem,
-//     dom: document.createElement("div"),
-//     contentDOM: document.createElement("div"),
-//   }),
-// };
-
-// const fix = fixTables(defaultEditorState);
-// if (fix) defaultEditorState = defaultEditorState.apply(fix.setMeta('addToHistory', false));
-
-// const buildTable = ({ data }) => {
-//   return function Table() {
-//     const { cols = [], rows = [] } = data;
-//     console.log("buildTable() cols=" + cols);
-//     useEditorEventListener("keydown", view => {
-//       let tr = view.state.tr
-//       view.dispatch(tr);
-//     });
-//     return (
-//       <div className="pt-10">
-//         <div className="mt-8 flow-root">
-//           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-//             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-//               <table className="min-w-full divide-y divide-gray-300">
-//                 <thead>
-//                   <tr>
-//                     {
-//                       cols.map((col, index) => (
-//                         <th key={index} scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-0">
-//                           {col}
-//                         </th>
-//                       ))
-//                     }
-//                   </tr>
-//                 </thead>
-//                 <tbody className="divide-y divide-gray-200">
-//                   {
-//                     rows.map((row, index) => (
-//                       <tr key={index}>
-//                         {
-//                           cols.map((col, index) => (
-//                             <td key={index} className="whitespace-nowrap py-2 pl-4 pr-3 text-xs font-medium text-gray-900 sm:pl-0">
-//                               {row[col]}
-//                             </td>
-//                           ))
-//                         }
-//                       </tr>
-//                     ))
-//                   }
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     )
-//   }
-// };
-
 const { table, table_row, table_cell, paragraph } = schema.nodes;
-const cellAttrs = {width: "50px", height: "50px"};
-const docNode = schema.node("doc", null, [
-  table.create(null, [
-    table_row.create(null, [
-      table_cell.create(cellAttrs, [paragraph.create(null, [schema.text("1")])]),
-      table_cell.create(cellAttrs, [paragraph.create(null, [schema.text("2")])])
-    ]),
-    table_row.create(null, [
-      table_cell.create(cellAttrs, [paragraph.create(null, [schema.text("3")])]),
-      table_cell.create(cellAttrs, [paragraph.create(null, [schema.text("4")])])
+const cellAttrs = {width: "50px", height: "50px", background: "#fff"};
+const createDocNode = doc => {
+  console.log("createDocNode() doc=" + JSON.stringify(doc, null, 2));
+  return (
+    doc && schema.nodeFromJSON(doc) || schema.node("doc", null, [
+      table.create(null, [
+        table_row.create(null, [
+          table_cell.create(cellAttrs, [
+            paragraph.create(null, [schema.text(" ")])
+          ]),
+        ]),
+      ])
     ])
-  ])
-]);
+  );
+};
 
 function Editor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
 //  const [ doc, setDoc ] = useState({});
   const [ editorState, setEditorState ] = useState(EditorState.create({
-    doc: docNode,
+    doc: createDocNode(state.data.doc),
     plugins: [
       columnResizing(),
       tableEditing(),
@@ -256,7 +156,7 @@ function Editor({ state, reactNodeViews }) {
         Tab: goToNextCell(1),
         'Shift-Tab': goToNextCell(-1),
       }),
-      react(),    
+      react(),
     ].concat(
       exampleSetup({
         schema,
@@ -267,22 +167,21 @@ function Editor({ state, reactNodeViews }) {
   
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
-      console.log("click"),
       setEditorState((oldState) => oldState.apply(tr))
     ),
     []
   );
 
-  const docJSON = editorState.doc.toJSON();
+  const doc = editorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       args: {
-        docJSON,
+        doc,
       },
     });
-  }, [JSON.stringify(docJSON)]);
+  }, [JSON.stringify(doc)]);
 
   return (
     <ProseMirror
@@ -301,7 +200,7 @@ export function TableEditor({ state }) {
   //const { data } = state;
   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     paragraph: () => ({
-      component: Paragraph, //buildTable({ data }),
+      component: Paragraph,
       dom: document.createElement("div"),
       contentDOM: document.createElement("div"),
     }),
