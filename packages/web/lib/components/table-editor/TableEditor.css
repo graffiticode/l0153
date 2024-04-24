@@ -1,0 +1,46 @@
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+}
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 250;
+  height: 250;
+  overflow: hidden;
+  border: 1px solid black;
+  height: 24px;
+}
+.ProseMirror td,
+.ProseMirror th {
+  vertical-align: middle;
+  box-sizing: border-box;
+  position: relative;
+  text-align: center;
+  border: 1px solid black;
+}
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 20;
+  background-color: #adf;
+  pointer-events: none;
+}
+.ProseMirror.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
+/* Give selected cells a blue overlay */
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
