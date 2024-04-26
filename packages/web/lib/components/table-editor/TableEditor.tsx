@@ -147,24 +147,27 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
 // Plugin to dynamically change background color based on content length
-const applyDecoration = (doc) => {
+const applyDecoration = ({ doc, cells }) => {
   const decorations = [];
-  const grid = [];
-  let row = 0, col = 0;
-  doc.descendants((node, pos) => {
-    if (node.type.name === "table_row") {
-      row++;
-      col = 0;
-    }
-    if (node.type.name === "table_cell") {
-      col++;
-    }
-    if (node.type.name === "paragraph") {
-      const color = node.textContent.length > 2 ? "lightblue" : "white";
-      decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
-    }
+  // const grid = [];
+  // let row = 0, col = 0;
+  // doc.descendants((node, pos) => {
+  //   if (node.type.name === "table_row") {
+  //     row++;
+  //     col = 0;
+  //   }
+  //   if (node.type.name === "table_cell") {
+  //     col++;
+  //   }
+  //   if (node.type.name === "paragraph") {
+  //     const color = node.textContent.length > 2 ? "lightblue" : "white";
+  //     decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
+  //   }
+  // });
+  cells.forEach(cell => {
+    const { from, to, color } = cell;
+    decorations.push(Decoration.node(from, to, { style: `background-color: ${color};` }));
   });
-  console.log("applyDecorations() grid=" + JSON.stringify(grid, null, 2));
   return DecorationSet.create(doc, decorations);
 };
 
@@ -172,15 +175,14 @@ const dynamicBackgroundPlugin = new Plugin({
   state: {
     init(_, { doc }) {
       console.log("plugin init()");
-      applyRules({doc});
-      return applyDecoration(doc);
+      return applyRules({doc});
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
       console.log("plugin apply()");
       if (tr.docChanged) {
-        return applyDecoration(tr.doc);
+        return applyRules({doc: tr.doc});
       }
       return decorationSet;
     },
@@ -222,8 +224,7 @@ const applyRules = ({ doc }) => {
   let colTotals = [];
   let rowColors = [];
   let colColors = [];
-  cells.forEach(cell => {
-    const { row, col, val } = cell;
+  cells.forEach(({ row, col, val }) => {
     console.log("applyRules() row=" + JSON.stringify(row) + " col=" + col + " val=" + val);
     if (row < rowCount) {
       if (colSums[col] === undefined) {
@@ -233,7 +234,7 @@ const applyRules = ({ doc }) => {
       }
     } else {
       colTotals[col] = val;
-      colColors[col] = val === colSums[col] && "white" || "red";
+      colColors[col] = val !== colSums[col] && "red" || null;
     }
     if (col < colCount) {
       if (rowSums[row] === undefined) {
@@ -243,11 +244,15 @@ const applyRules = ({ doc }) => {
       }
     } else {
       rowTotals[row] = val;
-      rowColors[row] = val === rowSums[row] && "white" || "red";
+      rowColors[row] = val !== rowSums[row] && "red" || null;
     }
   });
-  console.log("applyRules() rowColors=" + JSON.stringify(rowColors) + " rowSums=" + JSON.stringify(rowSums));
-  console.log("applyRules() colColors=" + JSON.stringify(colColors) + " colSums=" + JSON.stringify(colSums));
+  const coloredCells = cells.map(cell => ({
+    ...cell,
+    color: rowColors[cell.row] || colColors[cell.col] || "white",
+  }));
+  console.log("applyRules() coloredCells=" + JSON.stringify(coloredCells, null, 2));
+  return applyDecoration({doc, cells: coloredCells});
 }
 
 //   // Make a copy of doc so we can mutate it.
