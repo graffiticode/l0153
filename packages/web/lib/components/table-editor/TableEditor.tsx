@@ -7,6 +7,7 @@
 //   splitBlock,
 //   toggleMark,
 // } from "prosemirror-commands";
+// import assert from "assert";
 import { keymap } from "prosemirror-keymap";
 import { Schema } from "prosemirror-model";
 //import { liftListItem, splitListItem } from "prosemirror-schema-list";
@@ -129,7 +130,6 @@ const debouncedApply = debounce(({ state, type, args }) => {
 const { table, table_row, table_cell, paragraph } = schema.nodes;
 const cellAttrs = {width: "50px", height: "50px", background: "#fff"};
 const createDocNode = doc => {
-  console.log("createDocNode() doc=" + JSON.stringify(doc, null, 2));
   return (
     doc && schema.nodeFromJSON(doc) || schema.node("doc", null, [
       table.create(null, [
@@ -143,37 +143,206 @@ const createDocNode = doc => {
   );
 };
 
+import { Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+
+// Plugin to dynamically change background color based on content length
+const applyDecoration = (doc) => {
+  const decorations = [];
+  const grid = [];
+  let row = 0, col = 0;
+  doc.descendants((node, pos) => {
+    if (node.type.name === "table_row") {
+      row++;
+      col = 0;
+    }
+    if (node.type.name === "table_cell") {
+      col++;
+    }
+    if (node.type.name === "paragraph") {
+      const color = node.textContent.length > 2 ? "lightblue" : "white";
+      decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
+    }
+  });
+  console.log("applyDecorations() grid=" + JSON.stringify(grid, null, 2));
+  return DecorationSet.create(doc, decorations);
+};
+
+const dynamicBackgroundPlugin = new Plugin({
+  state: {
+    init(_, { doc }) {
+      console.log("plugin init()");
+      applyRules({doc});
+      return applyDecoration(doc);
+    },
+    apply(tr, decorationSet, oldState, newState) {
+      oldState = oldState;
+      newState = newState;
+      console.log("plugin apply()");
+      if (tr.docChanged) {
+        return applyDecoration(tr.doc);
+      }
+      return decorationSet;
+    },
+  },
+  props: {
+    decorations(state) {
+      console.log("plugin props decorations()");
+      return this.getState(state);
+    }
+  }
+});
+
+const getCells = (doc) => {
+  const cells = [];
+  let row = 0, col = 0;
+  doc.descendants((node, pos) => {
+    if (node.type.name === "table_row") {
+      row++;
+      col = 0;
+    }
+    if (node.type.name === "table_cell") {
+      col++;
+    }
+    if (node.type.name === "paragraph") {
+      const val = +node.textContent;
+      cells.push({row, col, val, from: pos, to: pos + node.nodeSize});
+    }
+  });
+  return cells;
+};
+
+const applyRules = ({ doc }) => {
+  const cells = getCells(doc);
+  const rowCount = +cells[cells.length - 1].row;
+  const colCount = +cells[cells.length - 1].col;
+  let rowSums = [];
+  let colSums = [];
+  let rowTotals = [];
+  let colTotals = [];
+  let rowColors = [];
+  let colColors = [];
+  cells.forEach(cell => {
+    const { row, col, val } = cell;
+    console.log("applyRules() row=" + JSON.stringify(row) + " col=" + col + " val=" + val);
+    if (row < rowCount) {
+      if (colSums[col] === undefined) {
+        colSums[col] = val;
+      } else {
+        colSums[col] += val;
+      }
+    } else {
+      colTotals[col] = val;
+      colColors[col] = val === colSums[col] && "white" || "red";
+    }
+    if (col < colCount) {
+      if (rowSums[row] === undefined) {
+        rowSums[row] = val;
+      } else {
+        rowSums[row] += val;
+      }
+    } else {
+      rowTotals[row] = val;
+      rowColors[row] = val === rowSums[row] && "white" || "red";
+    }
+  });
+  console.log("applyRules() rowColors=" + JSON.stringify(rowColors) + " rowSums=" + JSON.stringify(rowSums));
+  console.log("applyRules() colColors=" + JSON.stringify(colColors) + " colSums=" + JSON.stringify(colSums));
+}
+
+//   // Make a copy of doc so we can mutate it.
+//   doc = JSON.parse(JSON.stringify(doc));
+//   doc.content.forEach(table => {
+//     assert(table.type === "table");
+//     table.content.forEach(row => {
+//       assert(row.type === "table_row");
+//       const cellCount = row.content.length;
+//       let total = 0;
+//       let sum = 0;
+//       row.content.forEach((cell, cellIndex) => {
+//         assert(cell.type === "table_cell");
+//         const val = cell.content[0].content && +cell.content[0].content[0]?.text || Number.NaN;
+//         if (cellIndex < cellCount - 1) {
+//           sum += val;
+//         } else {
+//           total = val;
+//         }
+//       });
+//       const color = sum !== total && "#f99" || "#fff";
+//       row.content.forEach(cell => {
+//         cell.attrs.background = color;
+//       });
+//     });
+//   });
+  
+// //  console.log("applyRules() doc=" + JSON.stringify(doc, null, 2));
+//   return doc;
+//   // const argsCols = cols.slice(0, cols.length - 1);
+//   // const totalCol = cols[cols.length - 1];
+//   // const rowAttrs = []
+//   // rows.forEach((row, rowIndex) => {
+//   //   let total = 0;
+//   //   argsCols.forEach(col => {
+//   //     total += +row[col];
+//   //   });
+//   //   if (rowAttrs[rowIndex] === undefined) {
+//   //     rowAttrs[rowIndex] = {};
+//   //   }
+//   //   rowAttrs[rowIndex].color = +row[totalCol] !== total && "#f99" || "#fff";
+//   // });
+//   // console.log("applyRules() rowAttrs=" + JSON.stringify(rowAttrs, null, 2));
+// };
+
 function Editor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
-//  const [ doc, setDoc ] = useState({});
   const [ editorState, setEditorState ] = useState(EditorState.create({
-    doc: createDocNode(state.data.doc),
-    plugins: [
-      columnResizing(),
-      tableEditing(),
-      keymap({
-        Tab: goToNextCell(1),
-        'Shift-Tab': goToNextCell(-1),
-      }),
-      react(),
-    ].concat(
-      exampleSetup({
-        schema,
-        menuContent: menu as MenuItem[][],
-      }),
-    ),
+      doc: createDocNode(state.data.doc),
+      plugins: [
+        columnResizing(),
+        tableEditing(),
+        keymap({
+          Tab: goToNextCell(1),
+          'Shift-Tab': goToNextCell(-1),
+        }),
+        react(),
+        dynamicBackgroundPlugin,
+      ].concat(
+        exampleSetup({
+          schema,
+          menuContent: menu as MenuItem[][],
+        }),
+      )
   }));
   
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
+      console.log("tr=" + JSON.stringify(tr, null, 2)),
       setEditorState((oldState) => oldState.apply(tr))
     ),
     []
   );
 
-  const doc = editorState.doc.toJSON();
+  let doc = editorState.doc.toJSON();
   useEffect(() => {
+    // const { rules } = state.data;
+    // setEditorState(EditorState.create({
+    //   doc: applyRules({doc, rules}),
+    //   plugins: [
+    //     columnResizing(),
+    //     tableEditing(),
+    //     keymap({
+    //       Tab: goToNextCell(1),
+    //       'Shift-Tab': goToNextCell(-1),
+    //     }),
+    //     react(),
+    //   ].concat(
+    //     exampleSetup({
+    //       schema,
+    //       menuContent: menu as MenuItem[][],
+    //     }),
+    //   )
+    // }));
     debouncedApply({
       state,
       type: "change",
@@ -197,7 +366,6 @@ function Editor({ state, reactNodeViews }) {
 }
 
 export function TableEditor({ state }) {
-  //const { data } = state;
   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     paragraph: () => ({
       component: Paragraph,
