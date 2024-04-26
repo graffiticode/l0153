@@ -164,8 +164,7 @@ const applyDecoration = ({ doc, cells }) => {
   //     decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
   //   }
   // });
-  cells.forEach(cell => {
-    const { from, to, color } = cell;
+  cells.forEach({ from, to, color } => {
     decorations.push(Decoration.node(from, to, { style: `background-color: ${color};` }));
   });
   return DecorationSet.create(doc, decorations);
