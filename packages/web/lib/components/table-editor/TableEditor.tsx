@@ -36,7 +36,7 @@ import 'prosemirror-gapcursor/style/gapcursor.css';
 //import { DOMParser, Schema } from 'prosemirror-model';
 import { schema as baseSchema } from 'prosemirror-schema-basic';
 //import { keymap } from 'prosemirror-keymap';
-import { exampleSetup, buildMenuItems } from 'prosemirror-example-setup';
+import { /*exampleSetup,*/ buildMenuItems } from 'prosemirror-example-setup';
 import { MenuItem, Dropdown } from 'prosemirror-menu';
 
 import {
@@ -303,22 +303,24 @@ function Editor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
   const [ editorState, setEditorState ] = useState(EditorState.create({
-      doc: createDocNode(state.data.doc),
-      plugins: [
-        columnResizing(),
-        tableEditing(),
-        keymap({
-          Tab: goToNextCell(1),
-          'Shift-Tab': goToNextCell(-1),
-        }),
-        react(),
-        dynamicBackgroundPlugin,
-      ].concat(
-        exampleSetup({
-          schema,
-          menuContent: menu as MenuItem[][],
-        }),
-      )
+    doc: createDocNode(state.data.doc),
+    schema,
+    plugins: [
+      columnResizing(),
+      tableEditing(),
+      keymap({
+        Tab: goToNextCell(1),
+        'Shift-Tab': goToNextCell(-1),
+      }),
+      react(),
+      dynamicBackgroundPlugin,
+    ]
+    // ].concat(
+    //   exampleSetup({
+    //     schema,
+    //     menuContent: menu as MenuItem[][],
+    //   }),
+    // )
   }));
   
   const dispatchTransaction = useCallback(
