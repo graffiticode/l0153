@@ -164,7 +164,7 @@ const applyDecoration = ({ doc, cells }) => {
   //     decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
   //   }
   // });
-  cells.forEach({ from, to, color } => {
+  cells.forEach(({ from, to, color }) => {
     decorations.push(Decoration.node(from, to, { style: `background-color: ${color};` }));
   });
   return DecorationSet.create(doc, decorations);
@@ -204,8 +204,6 @@ const getCells = (doc) => {
     }
     if (node.type.name === "table_cell") {
       col++;
-    }
-    if (node.type.name === "paragraph") {
       const val = +node.textContent;
       cells.push({row, col, val, from: pos, to: pos + node.nodeSize});
     }
@@ -233,7 +231,7 @@ const applyRules = ({ doc }) => {
       }
     } else {
       colTotals[col] = val;
-      colColors[col] = val !== colSums[col] && "red" || null;
+      colColors[col] = val !== colSums[col] && "#fee" || null;
     }
     if (col < colCount) {
       if (rowSums[row] === undefined) {
@@ -243,12 +241,16 @@ const applyRules = ({ doc }) => {
       }
     } else {
       rowTotals[row] = val;
-      rowColors[row] = val !== rowSums[row] && "red" || null;
+      rowColors[row] = val !== rowSums[row] && "#fee" || null;
     }
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
-    color: rowColors[cell.row] || colColors[cell.col] || "white",
+    color:
+//      (cell.row === rowCount || cell.col === colCount) && "#eee" ||
+      rowColors[cell.row] ||
+      colColors[cell.col] ||
+      "#efe",
   }));
   console.log("applyRules() coloredCells=" + JSON.stringify(coloredCells, null, 2));
   return applyDecoration({doc, cells: coloredCells});
