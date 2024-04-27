@@ -19,23 +19,21 @@ export class Checker extends BasisChecker {
 
 const buildCell = ({ col, row, attrs }) => {
   const cell = row[col];
-  console.log("buildCell() cell=" + JSON.stringify(cell, null, 2));
   let content;
   let colspan = 1;
   let rowspan = 1;
   let background = "#fff";
   if (typeof cell === "object") {
     content = cell.doc.content;
-    console.log("buildCell() content=" + JSON.stringify(content, null, 2));
     colspan = content[0].content[0].content.length;
     rowspan = content[0].content[0].length;
-    console.log("buildCell() colspan=" + colspan + " rowspan=" + rowspan + " content=" + JSON.stringify(content, null, 2));
   } else {
     background = attrs.color;
+    const text = row[col];
     content = [
       {
         "type": "paragraph",
-        "content": [
+        "content": row[col] && [
           {
             "type": "text",
             "text": row[col],
@@ -59,8 +57,6 @@ const buildCell = ({ col, row, attrs }) => {
 };
 
 const buildRow = ({ cols, row, attrs }) => {
-  console.log("buildTable() cols=" + JSON.stringify(cols));
-  console.log("buildTable() row=" + JSON.stringify(row));
   return ({
     "type": "table_row",
     "content": cols.map(col => {
@@ -70,8 +66,6 @@ const buildRow = ({ cols, row, attrs }) => {
 };
 
 const buildTable = ({ cols, rows, attrs }) => {
-  console.log("buildTable() cols=" + JSON.stringify(cols));
-  console.log("buildTable() rows=" + JSON.stringify(rows));
   return ({
     "type": "table",
     "content": rows.map((row, rowIndex) => {
@@ -105,7 +99,6 @@ const applyRules = ({ cols, rows, rules }) => {
     }
     rowAttrs[rowIndex].color = +row[totalCol] !== total && "#f99" || "#fff";
   });
-  console.log("applyRules() rowAttrs=" + JSON.stringify(rowAttrs, null, 2));
   return rowAttrs;
 };
 
@@ -148,7 +141,6 @@ export class Transformer extends BasisTransformer {
       const data = options?.data || {};
       const err = e0;
       const val = v0.pop();
-      console.log("PROG() val=" + JSON.stringify(val, null, 2));
       resume(err, {
         ...val,
         ...data,

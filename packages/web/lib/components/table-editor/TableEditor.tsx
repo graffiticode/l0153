@@ -173,13 +173,11 @@ const applyDecoration = ({ doc, cells }) => {
 const dynamicBackgroundPlugin = new Plugin({
   state: {
     init(_, { doc }) {
-      console.log("plugin init()");
       return applyRules({doc});
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
-      console.log("plugin apply()");
       if (tr.docChanged) {
         return applyRules({doc: tr.doc});
       }
@@ -188,7 +186,6 @@ const dynamicBackgroundPlugin = new Plugin({
   },
   props: {
     decorations(state) {
-      console.log("plugin props decorations()");
       return this.getState(state);
     }
   }
@@ -204,7 +201,7 @@ const getCells = (doc) => {
     }
     if (node.type.name === "table_cell") {
       col++;
-      const val = +node.textContent;
+      const val = Number.parseInt(node.textContent);
       cells.push({row, col, val, from: pos, to: pos + node.nodeSize});
     }
   });
@@ -222,7 +219,6 @@ const applyRules = ({ doc }) => {
   let rowColors = [];
   let colColors = [];
   cells.forEach(({ row, col, val }) => {
-    console.log("applyRules() row=" + JSON.stringify(row) + " col=" + col + " val=" + val);
     if (row < rowCount) {
       if (colSums[col] === undefined) {
         colSums[col] = val;
@@ -247,57 +243,13 @@ const applyRules = ({ doc }) => {
   const coloredCells = cells.map(cell => ({
     ...cell,
     color:
-//      (cell.row === rowCount || cell.col === colCount) && "#eee" ||
+      isNaN(cell.val) && "#fff" ||
       rowColors[cell.row] ||
       colColors[cell.col] ||
       "#efe",
   }));
-  console.log("applyRules() coloredCells=" + JSON.stringify(coloredCells, null, 2));
   return applyDecoration({doc, cells: coloredCells});
 }
-
-//   // Make a copy of doc so we can mutate it.
-//   doc = JSON.parse(JSON.stringify(doc));
-//   doc.content.forEach(table => {
-//     assert(table.type === "table");
-//     table.content.forEach(row => {
-//       assert(row.type === "table_row");
-//       const cellCount = row.content.length;
-//       let total = 0;
-//       let sum = 0;
-//       row.content.forEach((cell, cellIndex) => {
-//         assert(cell.type === "table_cell");
-//         const val = cell.content[0].content && +cell.content[0].content[0]?.text || Number.NaN;
-//         if (cellIndex < cellCount - 1) {
-//           sum += val;
-//         } else {
-//           total = val;
-//         }
-//       });
-//       const color = sum !== total && "#f99" || "#fff";
-//       row.content.forEach(cell => {
-//         cell.attrs.background = color;
-//       });
-//     });
-//   });
-  
-// //  console.log("applyRules() doc=" + JSON.stringify(doc, null, 2));
-//   return doc;
-//   // const argsCols = cols.slice(0, cols.length - 1);
-//   // const totalCol = cols[cols.length - 1];
-//   // const rowAttrs = []
-//   // rows.forEach((row, rowIndex) => {
-//   //   let total = 0;
-//   //   argsCols.forEach(col => {
-//   //     total += +row[col];
-//   //   });
-//   //   if (rowAttrs[rowIndex] === undefined) {
-//   //     rowAttrs[rowIndex] = {};
-//   //   }
-//   //   rowAttrs[rowIndex].color = +row[totalCol] !== total && "#f99" || "#fff";
-//   // });
-//   // console.log("applyRules() rowAttrs=" + JSON.stringify(rowAttrs, null, 2));
-// };
 
 function Editor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
@@ -323,7 +275,6 @@ function Editor({ state, reactNodeViews }) {
   
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
-      console.log("tr=" + JSON.stringify(tr, null, 2)),
       setEditorState((oldState) => oldState.apply(tr))
     ),
     []
@@ -331,24 +282,6 @@ function Editor({ state, reactNodeViews }) {
 
   let doc = editorState.doc.toJSON();
   useEffect(() => {
-    // const { rules } = state.data;
-    // setEditorState(EditorState.create({
-    //   doc: applyRules({doc, rules}),
-    //   plugins: [
-    //     columnResizing(),
-    //     tableEditing(),
-    //     keymap({
-    //       Tab: goToNextCell(1),
-    //       'Shift-Tab': goToNextCell(-1),
-    //     }),
-    //     react(),
-    //   ].concat(
-    //     exampleSetup({
-    //       schema,
-    //       menuContent: menu as MenuItem[][],
-    //     }),
-    //   )
-    // }));
     debouncedApply({
       state,
       type: "change",
