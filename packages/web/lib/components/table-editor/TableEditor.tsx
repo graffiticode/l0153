@@ -208,44 +208,106 @@ const getCells = (doc) => {
   return cells;
 };
 
+// const applyGridAddRules = ({ doc }) => {
+//   const cells = getCells(doc);
+//   const rowCount = +cells[cells.length - 1].row;
+//   const colCount = +cells[cells.length - 1].col;
+//   let rowSums = [];
+//   let colSums = [];
+//   let rowTotals = [];
+//   let colTotals = [];
+//   let rowColors = [];
+//   let colColors = [];
+//   cells.forEach(({ row, col, val }) => {
+//     if (row < rowCount) {
+//       if (colSums[col] === undefined) {
+//         colSums[col] = val;
+//       } else {
+//         colSums[col] += val;
+//       }
+//     } else {
+//       colTotals[col] = val;
+//       colColors[col] = val !== colSums[col] && "#fee" || null;
+//     }
+//     if (col < colCount) {
+//       if (rowSums[row] === undefined) {
+//         rowSums[row] = val;
+//       } else {
+//         rowSums[row] += val;
+//       }
+//     } else {
+//       rowTotals[row] = val;
+//       rowColors[row] = val !== rowSums[row] && "#fee" || null;
+//     }
+//   });
+//   const coloredCells = cells.map(cell => ({
+//     ...cell,
+//     color:
+//       isNaN(cell.val) && "#fff" ||
+//       rowColors[cell.row] ||
+//       colColors[cell.col] ||
+//       "#efe",
+//   }));
+//   return applyDecoration({doc, cells: coloredCells});
+// }
+
 const applyRules = ({ doc }) => {
+  // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
   const rowCount = +cells[cells.length - 1].row;
   const colCount = +cells[cells.length - 1].col;
+  let rowVals = [];
+  let colVals = [];
   let rowSums = [];
   let colSums = [];
   let rowTotals = [];
   let colTotals = [];
   let rowColors = [];
   let colColors = [];
+  let cellColors = [];
   cells.forEach(({ row, col, val }) => {
     if (row < rowCount) {
-      if (colSums[col] === undefined) {
-        colSums[col] = val;
+      if (row === 1) {
+        colVals[col] = val;
       } else {
-        colSums[col] += val;
+        if (colSums[col] === undefined) {
+          colSums[col] = val;
+        } else {
+          colSums[col] += val;
+        }
       }
+      if (cellColors[row] === undefined) {
+        cellColors[row] = [];
+      }
+      cellColors[row][col] = val !== rowVals[row] * colVals[col] && "#fee" || null;
     } else {
       colTotals[col] = val;
-      colColors[col] = val !== colSums[col] && "#fee" || null;
+      colColors[col] = (val !== colSums[col] && "#fee") || null;
     }
     if (col < colCount) {
-      if (rowSums[row] === undefined) {
-        rowSums[row] = val;
+      if (col === 1) {
+        rowVals[row] = val;
       } else {
-        rowSums[row] += val;
+        if (rowSums[row] === undefined) {
+          rowSums[row] = val;
+        } else {
+          rowSums[row] += val;
+        }
       }
     } else {
       rowTotals[row] = val;
-      rowColors[row] = val !== rowSums[row] && "#fee" || null;
+      rowColors[row] = (val !== rowSums[row]) && "#fee" || null;
     }
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
     color:
       isNaN(cell.val) && "#fff" ||
-      rowColors[cell.row] ||
-      colColors[cell.col] ||
+      (cell.col === 1 || cell.row === 1) && "#eee" ||
+      cell.col === colCount && cell.row < rowCount && rowColors[cell.row] ||
+      cell.row === rowCount && cell.col < colCount && colColors[cell.col] ||
+      cell.row === rowCount && cell.col === colCount && colColors[cell.col] && rowColors[cell.row] ||
+      cell.row < rowCount && cell.col < colCount && cellColors[cell.row] && cellColors[cell.row][cell.col] ||
       "#efe",
   }));
   return applyDecoration({doc, cells: coloredCells});
