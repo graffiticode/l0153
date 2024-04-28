@@ -149,21 +149,6 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 // Plugin to dynamically change background color based on content length
 const applyDecoration = ({ doc, cells }) => {
   const decorations = [];
-  // const grid = [];
-  // let row = 0, col = 0;
-  // doc.descendants((node, pos) => {
-  //   if (node.type.name === "table_row") {
-  //     row++;
-  //     col = 0;
-  //   }
-  //   if (node.type.name === "table_cell") {
-  //     col++;
-  //   }
-  //   if (node.type.name === "paragraph") {
-  //     const color = node.textContent.length > 2 ? "lightblue" : "white";
-  //     decorations.push(Decoration.node(pos, pos + node.nodeSize, { style: `background-color: ${color};` }));
-  //   }
-  // });
   cells.forEach(({ from, to, color }) => {
     decorations.push(Decoration.node(from, to, { style: `background-color: ${color};` }));
   });
@@ -254,49 +239,33 @@ const getCells = (doc) => {
 const applyRules = ({ doc }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
-  const rowCount = +cells[cells.length - 1].row;
-  const colCount = +cells[cells.length - 1].col;
   let rowVals = [];
   let colVals = [];
   let rowSums = [];
   let colSums = [];
-  let rowTotals = [];
-  let colTotals = [];
-  let rowColors = [];
-  let colColors = [];
   let cellColors = [];
   cells.forEach(({ row, col, val }) => {
-    if (row < rowCount) {
-      if (row === 1) {
-        colVals[col] = val;
-      } else {
-        if (colSums[col] === undefined) {
-          colSums[col] = val;
-        } else {
-          colSums[col] += val;
-        }
-      }
-      if (cellColors[row] === undefined) {
-        cellColors[row] = [];
-      }
-      cellColors[row][col] = val !== rowVals[row] * colVals[col] && "#fee" || null;
+    if (row === 1) {
+      colVals[col] = val;
     } else {
-      colTotals[col] = val;
-      colColors[col] = (val !== colSums[col] && "#fee") || null;
+      if (colSums[col] === undefined) {
+        colSums[col] = val;
+      } else {
+        colSums[col] += val;
+      }
     }
-    if (col < colCount) {
-      if (col === 1) {
-        rowVals[row] = val;
-      } else {
-        if (rowSums[row] === undefined) {
-          rowSums[row] = val;
-        } else {
-          rowSums[row] += val;
-        }
-      }
+    if (cellColors[row] === undefined) {
+      cellColors[row] = [];
+    }
+    cellColors[row][col] = val !== rowVals[row] * colVals[col] && "#fee" || null;
+    if (col === 1) {
+      rowVals[row] = val;
     } else {
-      rowTotals[row] = val;
-      rowColors[row] = (val !== rowSums[row]) && "#fee" || null;
+      if (rowSums[row] === undefined) {
+        rowSums[row] = val;
+      } else {
+        rowSums[row] += val;
+      }
     }
   });
   const coloredCells = cells.map(cell => ({
@@ -304,10 +273,7 @@ const applyRules = ({ doc }) => {
     color:
       isNaN(cell.val) && "#fff" ||
       (cell.col === 1 || cell.row === 1) && "#eee" ||
-      cell.col === colCount && cell.row < rowCount && rowColors[cell.row] ||
-      cell.row === rowCount && cell.col < colCount && colColors[cell.col] ||
-      cell.row === rowCount && cell.col === colCount && colColors[cell.col] && rowColors[cell.row] ||
-      cell.row < rowCount && cell.col < colCount && cellColors[cell.row] && cellColors[cell.row][cell.col] ||
+      cellColors[cell.row] && cellColors[cell.row][cell.col] ||
       "#efe",
   }));
   return applyDecoration({doc, cells: coloredCells});
