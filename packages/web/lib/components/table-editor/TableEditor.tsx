@@ -22,7 +22,7 @@ import type { NodeViewComponentProps } from "@nytimes/react-prosemirror";
 import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 import { react } from "@nytimes/react-prosemirror";
 
-//import Menu from "./Menu.js";
+import Menu from "./Menu.js";
 import "./TableEditor.css";
 
 import 'prosemirror-view/style/prosemirror.css';
@@ -36,24 +36,24 @@ import 'prosemirror-gapcursor/style/gapcursor.css';
 //import { DOMParser, Schema } from 'prosemirror-model';
 import { schema as baseSchema } from 'prosemirror-schema-basic';
 //import { keymap } from 'prosemirror-keymap';
-import { exampleSetup, buildMenuItems } from 'prosemirror-example-setup';
-import { MenuItem, Dropdown } from 'prosemirror-menu';
+// import { exampleSetup /*, buildMenuItems*/ } from 'prosemirror-example-setup';
+//import { MenuItem, Dropdown } from 'prosemirror-menu';
 
 import {
-  addColumnAfter,
-  addColumnBefore,
-  deleteColumn,
-  addRowAfter,
-  addRowBefore,
-  deleteRow,
-  mergeCells,
-  splitCell,
-  setCellAttr,
-  toggleHeaderRow,
-  toggleHeaderColumn,
-  toggleHeaderCell,
+//   addColumnAfter,
+//   addColumnBefore,
+//   deleteColumn,
+//   addRowAfter,
+//   addRowBefore,
+//   deleteRow,
+//   mergeCells,
+//   splitCell,
+//   setCellAttr,
+//   toggleHeaderRow,
+//   toggleHeaderColumn,
+//   toggleHeaderCell,
   goToNextCell,
-  deleteTable,
+//   deleteTable,
 } from 'prosemirror-tables';
 import { tableEditing, columnResizing, tableNodes /*, fixTables*/ } from 'prosemirror-tables';
 
@@ -97,27 +97,15 @@ const schema = new Schema({
   marks: baseSchema.spec.marks,
 });
 
-const menu = buildMenuItems(schema).fullMenu;
-function item(label: string, cmd: (state: EditorState) => boolean) {
-  return new MenuItem({ label, select: cmd, run: cmd });
-}
-const tableMenu = [
-  item('Insert column before', addColumnBefore),
-  item('Insert column after', addColumnAfter),
-  item('Delete column', deleteColumn),
-  item('Insert row before', addRowBefore),
-  item('Insert row after', addRowAfter),
-  item('Delete row', deleteRow),
-  item('Delete table', deleteTable),
-  item('Merge cells', mergeCells),
-  item('Split cell', splitCell),
-  item('Toggle header column', toggleHeaderColumn),
-  item('Toggle header row', toggleHeaderRow),
-  item('Toggle header cells', toggleHeaderCell),
-  item('Make cell green', setCellAttr('background', '#dfd')),
-  item('Make cell not-green', setCellAttr('background', null)),
-];
-menu.splice(2, 0, [new Dropdown(tableMenu, { label: 'Table' })]);
+// const menu = buildMenuItems(schema).fullMenu;
+// function item(label: string, cmd: (state: EditorState) => boolean) {
+//   return new MenuItem({ label, select: cmd, run: cmd });
+// }
+// const tableMenu = [
+//   item('Insert column after', addColumnAfter),
+//   item('Insert row after', addRowAfter),
+// ];
+// menu.splice(2, 0, [new Dropdown(tableMenu, { label: 'Table' })]);
 
 function Paragraph({ children }: NodeViewComponentProps) {
   return <p onClick={() => console.log('click')}>{children}</p>;
@@ -283,7 +271,8 @@ function Editor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
   const [ editorState, setEditorState ] = useState(EditorState.create({
-      doc: createDocNode(state.data.doc),
+    doc: createDocNode(state.data.doc),
+    schema,
       plugins: [
         columnResizing(),
         tableEditing(),
@@ -293,12 +282,13 @@ function Editor({ state, reactNodeViews }) {
         }),
         react(),
         dynamicBackgroundPlugin,
-      ].concat(
-        exampleSetup({
-          schema,
-          menuContent: menu as MenuItem[][],
-        }),
-      )
+      ]
+      // .concat(
+      //   exampleSetup({
+      //     schema,
+      //     menuContent: null,
+      //   }),
+      // )
   }));
   
   const dispatchTransaction = useCallback(
@@ -326,6 +316,7 @@ function Editor({ state, reactNodeViews }) {
       nodeViews={nodeViews}
       dispatchTransaction={dispatchTransaction}
     >
+      <Menu />
       <div ref={setMount} />
       {renderNodeViews()}
     </ProseMirror>

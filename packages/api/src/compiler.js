@@ -6,6 +6,16 @@ import {
 } from '@graffiticode/basis';
 
 export class Checker extends BasisChecker {
+  AREA_MODEL(node, options, resume) {
+    this.visit(node.elts[1], options, async (e1, v1) => {
+      this.visit(node.elts[0], options, async (e0, v0) => {
+        const err = [];
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+
   TABLE(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
@@ -74,12 +84,27 @@ const buildTable = ({ cols, rows, attrs }) => {
   })
 };
 
-const buildDocFromTable = ({ cols, rows, rules }) => {
+const buildDocFromTable = ({ problemStatement, cols, rows, rules }) => {
+  console.log("problemStatement=" + JSON.stringify(problemStatement, null, 2));
   const attrs = applyRules({ cols, rows, rules });
   return {
     "type": "doc",
     "content": [
-      buildTable({cols, rows, attrs}),
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: problemStatement || "<problem statement here>",
+          },
+        ]
+      },
+      {
+        type: "horizontal_rule",
+      },
+      {
+        ...buildTable({cols, rows, attrs}),
+      },
     ]
   }
 };
@@ -103,17 +128,33 @@ const applyRules = ({ cols, rows, rules }) => {
 };
 
 export class Transformer extends BasisTransformer {
-  TABLE(node, options, resume) {
+  AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
-        const doc = buildDocFromTable({...v0, ...v1});
         const err = [];
+        const doc = buildDocFromTable({
+          ...v1,
+          problemStatement: v0,
+        });
         const val = {doc};
         resume(err, val);
       });
     });
   }
-  
+
+  TABLE(node, options, resume) {
+    this.visit(node.elts[1], options, async (e1, v1) => {
+      this.visit(node.elts[0], options, async (e0, v0) => {
+        const err = [];
+        const val ={
+          ...v0,
+          ...v1
+        };
+        resume(err, val);
+      });
+    });
+  }
+
   COLS(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
       const data = options?.data || {};
@@ -124,7 +165,7 @@ export class Transformer extends BasisTransformer {
       resume(err, val);
     });
   }
-  
+
   ROWS(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
       const data = options?.data || {};
