@@ -84,24 +84,11 @@ const buildTable = ({ cols, rows, attrs }) => {
   })
 };
 
-const buildDocFromTable = ({ problemStatement, cols, rows, rules }) => {
-  console.log("problemStatement=" + JSON.stringify(problemStatement, null, 2));
+const buildDocFromTable = ({ cols, rows, rules }) => {
   const attrs = applyRules({ cols, rows, rules });
   return {
     "type": "doc",
     "content": [
-      {
-        type: "paragraph",
-        content: [
-          {
-            type: "text",
-            text: problemStatement || "<problem statement here>",
-          },
-        ]
-      },
-      {
-        type: "horizontal_rule",
-      },
       {
         ...buildTable({cols, rows, attrs}),
       },
@@ -134,9 +121,11 @@ export class Transformer extends BasisTransformer {
         const err = [];
         const doc = buildDocFromTable({
           ...v1,
-          problemStatement: v0,
         });
-        const val = {doc};
+        const val = {
+          problemStatement: v0,
+          doc,
+        };
         resume(err, val);
       });
     });

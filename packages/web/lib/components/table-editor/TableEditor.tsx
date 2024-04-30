@@ -13,7 +13,6 @@ import { Schema } from "prosemirror-model";
 //import { liftListItem, splitListItem } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import type { Transaction } from "prosemirror-state";
-import "prosemirror-view/style/prosemirror.css";
 import { useCallback, useState, useEffect } from "react";
 import { debounce } from "lodash";
 
@@ -29,15 +28,8 @@ import 'prosemirror-view/style/prosemirror.css';
 import 'prosemirror-menu/style/menu.css';
 import 'prosemirror-example-setup/style/style.css';
 import 'prosemirror-gapcursor/style/gapcursor.css';
-//import '../style/tables.css';
 
-//import { EditorView } from 'prosemirror-view';
-//import { EditorState } from 'prosemirror-state';
-//import { DOMParser, Schema } from 'prosemirror-model';
 import { schema as baseSchema } from 'prosemirror-schema-basic';
-//import { keymap } from 'prosemirror-keymap';
-// import { exampleSetup /*, buildMenuItems*/ } from 'prosemirror-example-setup';
-//import { MenuItem, Dropdown } from 'prosemirror-menu';
 
 import {
 //   addColumnAfter,
@@ -309,17 +301,23 @@ function Editor({ state, reactNodeViews }) {
     });
   }, [JSON.stringify(doc)]);
 
+  console.log("Editor() state=" + JSON.stringify(state, null, 2));
   return (
-    <ProseMirror
-      mount={mount}
-      state={editorState}
-      nodeViews={nodeViews}
-      dispatchTransaction={dispatchTransaction}
-    >
-      <Menu />
-      <div ref={setMount} />
-      {renderNodeViews()}
-    </ProseMirror>
+    <>
+      <div className="py-4">
+        { state.data.problemStatement }
+      </div>
+      <ProseMirror
+        mount={mount}
+        state={editorState}
+        nodeViews={nodeViews}
+        dispatchTransaction={dispatchTransaction}
+      >
+        <Menu />
+        <div ref={setMount} className="w-fit" />
+        {renderNodeViews()}
+      </ProseMirror>
+    </>
   );
 }
 
