@@ -251,8 +251,8 @@ const applyRules = ({ doc }) => {
   const coloredCells = cells.map(cell => ({
     ...cell,
     color:
-      isNaN(cell.val) && "#fff" ||
       (cell.col === 1 || cell.row === 1) && "#eee" ||
+      isNaN(cell.val) && "#fff" ||
       cellColors[cell.row] && cellColors[cell.row][cell.col] ||
       "#efe",
   }));

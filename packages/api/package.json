@@ -12,6 +12,7 @@
     "lint:fix": "eslint --fix src/ tools/"
   },
   "dependencies": {
+    "@artcompiler/parselatex": "file:artcompiler-parselatex-1.7.0.tgz",
     "@graffiticode/auth": "^2.1.2",
     "@graffiticode/basis": "^1.5.0",
     "cors": "^2.8.5",

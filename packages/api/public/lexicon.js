@@ -1,6 +1,8 @@
 window.gcexports.globalLexicon = {
   "hello" : { "tk": 1, "name": "HELLO", "cls": "function", "length": 1 },
   "area-model" : { "tk": 1, "name": "AREA_MODEL", "cls": "function", "length": 2 },
+  "problem-statement" : { "tk": 1, "name": "PROBLEM_STATEMENT", "cls": "function", "length": 1 },
+  "expression" : { "tk": 1, "name": "EXPRESSION", "cls": "function", "length": 1 },
   "table" : { "tk": 1, "name": "TABLE", "cls": "function", "length": 2 },
   "cols" : { "tk": 1, "name": "COLS", "cls": "function", "length": 1 },
   "rows" : { "tk": 1, "name": "ROWS", "cls": "function", "length": 1 },

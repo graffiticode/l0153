@@ -5,6 +5,8 @@ import {
   Compiler as BasisCompiler
 } from '@graffiticode/basis';
 
+import { Parser } from '@artcompiler/parselatex';
+
 export class Checker extends BasisChecker {
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
@@ -39,14 +41,14 @@ const buildCell = ({ col, row, attrs }) => {
     rowspan = content[0].content[0].length;
   } else {
     background = attrs.color;
-    const text = row[col];
+    const text = String(row[col]);
     content = [
       {
         "type": "paragraph",
         "content": row[col] && [
           {
             "type": "text",
-            "text": row[col],
+            text,
           }
         ]
       }
@@ -69,7 +71,7 @@ const buildCell = ({ col, row, attrs }) => {
 const buildRow = ({ cols, row, attrs }) => {
   return ({
     "type": "table_row",
-    "content": cols.map(col => {
+    "content": cols.map((col, index) => {
       return buildCell({col, row, attrs});
     }),
   })
@@ -120,10 +122,12 @@ export class Transformer extends BasisTransformer {
       this.visit(node.elts[0], options, async (e0, v0) => {
         const err = [];
         const doc = buildDocFromTable({
-          ...v1,
+          cols: ["a"],
+          rows: [{a: ""}],
         });
         const val = {
-          problemStatement: v0,
+          ...v0,
+          ...v1,
           doc,
         };
         resume(err, val);
@@ -141,6 +145,31 @@ export class Transformer extends BasisTransformer {
         };
         resume(err, val);
       });
+    });
+  }
+
+  PROBLEM_STATEMENT(node, options, resume) {
+    this.visit(node.elts[0], options, async (e0, v0) => {
+      const data = options?.data || {};
+      const err = [];
+      const val = {
+        problemStatement: v0,
+      };
+      resume(err, val);
+    });
+  }
+
+  EXPRESSION(node, options, resume) {
+    this.visit(node.elts[0], options, async (e0, v0) => {
+      const data = options?.data || {};
+      const err = [];
+      const exprNode = Parser.create({allowThousandsSeparator: true}, v0);
+      console.log("EXPRESSION() exprNode=" + JSON.stringify(exprNode, null, 2));
+      const val = {
+        expr: v0,
+//        exprNode,
+      };
+      resume(err, val);
     });
   }
 
@@ -171,6 +200,7 @@ export class Transformer extends BasisTransformer {
       const data = options?.data || {};
       const err = e0;
       const val = v0.pop();
+      console.log("PROG() val=" + JSON.stringify(val, null, 2));
       resume(err, {
         ...val,
         ...data,

@@ -27,13 +27,17 @@ main {
   box-shadow: none;
   border: thin solid #ccc;
   border-radius: 0.25rem;
-  color: black;
+  color: #777;
   background-color: white;
 
   &[aria-pressed="true"] {
     background-color: #ddd;
     color: blue;
   }
+}
+
+.button:hover {
+  color: #333
 }
 
 .button.bold {
