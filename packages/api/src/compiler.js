@@ -140,16 +140,41 @@ export class Transformer extends BasisTransformer {
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
+        let doc;
+        if (v0.initializeGrid || v1.initializeGrid) {
+          doc = buildDocFromTerms(v1);
+        } else {
+          doc = buildDocFromTable({
+            cols: ["a"],
+            rows: [{a: ""}],
+          });
+        }
         const err = [];
-        // const doc = buildDocFromTable({
-        //   cols: ["a"],
-        //   rows: [{a: ""}],
-        // });
-        const doc = buildDocFromTerms(v1);
         const val = {
           ...v0,
           ...v1,
           doc,
+        };
+        resume(err, val);
+      });
+    });
+  }
+
+  INITIALIZE_GRID(node, options, resume) {
+    this.visit(node.elts[1], options, async (e1, v1) => {
+      this.visit(node.elts[0], options, async (e0, v0) => {
+        const data = options?.data || {};
+        const initializeGrid =
+              data.initializeGrid !== undefined
+              ? data.initializeGrid
+              : v0;
+        const err = [];
+        console.log("GRID() initializeGrid=" + initializeGrid);
+        console.log("GRID() v0=" + JSON.stringify(v0, null, 2));
+        console.log("GRID() v1=" + JSON.stringify(v1, null, 2));
+        const val = {
+          ...v1,
+          initializeGrid,
         };
         resume(err, val);
       });
@@ -171,7 +196,6 @@ export class Transformer extends BasisTransformer {
 
   PROBLEM_STATEMENT(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
-      const data = options?.data || {};
       const err = [];
       const val = {
         problemStatement: v0,
@@ -227,13 +251,11 @@ export class Transformer extends BasisTransformer {
 
   PROG(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
-      const data = options?.data || {};
       const err = e0;
       const val = v0.pop();
       console.log("PROG() val=" + JSON.stringify(val, null, 2));
       resume(err, {
         ...val,
-        ...data,
       });
     });
   }

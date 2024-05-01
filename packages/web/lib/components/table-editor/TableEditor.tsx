@@ -301,7 +301,6 @@ function Editor({ state, reactNodeViews }) {
     });
   }, [JSON.stringify(doc)]);
 
-  console.log("Editor() state=" + JSON.stringify(state, null, 2));
   return (
     <>
       <div className="py-4">

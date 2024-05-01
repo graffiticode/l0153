@@ -1,5 +1,6 @@
 window.gcexports.globalLexicon = {
   "hello" : { "tk": 1, "name": "HELLO", "cls": "function", "length": 1 },
+  "initialize-grid" : { "tk": 1, "name": "INITIALIZE_GRID", "cls": "function", "length": 2 },
   "area-model" : { "tk": 1, "name": "AREA_MODEL", "cls": "function", "length": 2 },
   "problem-statement" : { "tk": 1, "name": "PROBLEM_STATEMENT", "cls": "function", "length": 1 },
   "expression" : { "tk": 1, "name": "EXPRESSION", "cls": "function", "length": 1 },
