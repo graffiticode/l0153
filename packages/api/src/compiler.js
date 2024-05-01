@@ -98,6 +98,26 @@ const buildDocFromTable = ({ cols, rows, rules }) => {
   }
 };
 
+const buildDocFromTerms = ({ terms, rules }) => {
+  const colsCount = Math.max(terms[0].length, terms[1].length);
+  const rowsCount = Math.min(terms[0].length, terms[1].length);
+  const cols = Array.apply(null, Array(colsCount + 1)).map((x, i) => String(i));
+  const row = {};
+  Array.apply(null, Array(colsCount + 1)).forEach((x, i) => {
+    row[String(i)] = "";
+  });
+  const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
+  const attrs = applyRules({ cols, rows, rules });
+  return {
+    "type": "doc",
+    "content": [
+      {
+        ...buildTable({cols, rows, attrs}),
+      },
+    ]
+  }
+};
+
 const applyRules = ({ cols, rows, rules }) => {
   rules = rules;
   const argsCols = cols.slice(0, cols.length - 1);
@@ -121,10 +141,11 @@ export class Transformer extends BasisTransformer {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
         const err = [];
-        const doc = buildDocFromTable({
-          cols: ["a"],
-          rows: [{a: ""}],
-        });
+        // const doc = buildDocFromTable({
+        //   cols: ["a"],
+        //   rows: [{a: ""}],
+        // });
+        const doc = buildDocFromTerms(v1);
         const val = {
           ...v0,
           ...v1,
@@ -164,13 +185,22 @@ export class Transformer extends BasisTransformer {
       const data = options?.data || {};
       const err = [];
       const exprNode = Parser.create({allowThousandsSeparator: true}, v0);
-      console.log("EXPRESSION() exprNode=" + JSON.stringify(exprNode, null, 2));
+      const terms = [
+        expandNumber(exprNode.args[0].args[0]),
+        expandNumber(exprNode.args[1].args[0]),
+      ];
       const val = {
         expr: v0,
-//        exprNode,
+        op: exprNode.op,
+        terms,
       };
       resume(err, val);
     });
+    const expandNumber = val => {
+      const parts = val.split("");
+      const terms = parts.reverse().map((part, index) => part * 10 ** index);
+      return terms;
+    };
   }
 
   COLS(node, options, resume) {
