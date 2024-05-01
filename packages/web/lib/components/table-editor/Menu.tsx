@@ -66,7 +66,7 @@ export function Button(props: {
   );
 }
 
-export default function Menu() {
+export default function Menu({ showGridButtons }) {
   const state = useEditorState();
 
   const addRow = useEditorEventCallback((view) => {
@@ -84,41 +84,42 @@ export default function Menu() {
   const delCol = useEditorEventCallback((view) => {
     deleteColumn(view.state, view.dispatch);
   });
-
   return (
-    <div className="menu">
-      <Button
-        className="addcol"
-        title="Add column"
-        isActive={isMarkActive(state.schema.marks["em"], state)}
-        onClick={addCol}
-      >
-        <ArrowRight />
-      </Button>
-      <Button
-        className="addrow"
-        title="Add row"
-        isActive={isMarkActive(state.schema.marks["em"], state)}
-        onClick={addRow}
-      >
-        <ArrowDown />
-      </Button>
-      <Button
-        className="delcol"
-        title="Delete column"
-        isActive={isMarkActive(state.schema.marks["em"], state)}
-        onClick={delCol}
-      >
-        <ArrowLeft />
-      </Button>
-      <Button
-        className="delrow"
-        title="Delete row"
-        isActive={isMarkActive(state.schema.marks["em"], state)}
-        onClick={delRow}
-      >
-        <ArrowUp />
-      </Button>
-    </div>
+    !showGridButtons &&
+      <div /> ||
+      <div className="menu">
+        <Button
+          className="addcol"
+          title="Add column"
+          isActive={isMarkActive(state.schema.marks["em"], state)}
+          onClick={addCol}
+        >
+          <ArrowRight />
+        </Button>
+        <Button
+          className="addrow"
+          title="Add row"
+          isActive={isMarkActive(state.schema.marks["em"], state)}
+          onClick={addRow}
+        >
+          <ArrowDown />
+        </Button>
+        <Button
+          className="delcol"
+          title="Delete column"
+          isActive={isMarkActive(state.schema.marks["em"], state)}
+          onClick={delCol}
+        >
+          <ArrowLeft />
+        </Button>
+        <Button
+          className="delrow"
+          title="Delete row"
+          isActive={isMarkActive(state.schema.marks["em"], state)}
+          onClick={delRow}
+        >
+          <ArrowUp />
+        </Button>
+      </div>
   );
 }

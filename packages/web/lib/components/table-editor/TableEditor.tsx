@@ -304,7 +304,7 @@ function Editor({ state, reactNodeViews }) {
   return (
     <>
       <div className="py-4">
-        { state.data.problemStatement }
+        { state.data.problemStatement }{ state.data.expression }
       </div>
       <ProseMirror
         mount={mount}
@@ -312,7 +312,7 @@ function Editor({ state, reactNodeViews }) {
         nodeViews={nodeViews}
         dispatchTransaction={dispatchTransaction}
       >
-        <Menu />
+        <Menu showGridButtons={!state.data.initializeGrid} />
         <div ref={setMount} className="w-fit" />
         {renderNodeViews()}
       </ProseMirror>

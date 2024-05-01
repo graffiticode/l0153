@@ -208,13 +208,14 @@ export class Transformer extends BasisTransformer {
     this.visit(node.elts[0], options, async (e0, v0) => {
       const data = options?.data || {};
       const err = [];
-      const exprNode = Parser.create({allowThousandsSeparator: true}, v0);
+      const expr = data.expression || v0;
+      const exprNode = Parser.create({allowThousandsSeparator: true}, expr);
       const terms = [
         expandNumber(exprNode.args[0].args[0]),
         expandNumber(exprNode.args[1].args[0]),
       ];
       const val = {
-        expr: v0,
+        expression: v0,
         op: exprNode.op,
         terms,
       };
