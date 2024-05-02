@@ -135,16 +135,16 @@ const applyDecoration = ({ doc, cells }) => {
   return DecorationSet.create(doc, decorations);
 };
 
-const dynamicBackgroundPlugin = new Plugin({
+const dynamicBackgroundPlugin = ({ terms }) => new Plugin({
   state: {
     init(_, { doc }) {
-      return applyRules({doc});
+      return applyRules({doc, terms});
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
       if (tr.docChanged) {
-        return applyRules({doc: tr.doc});
+        return applyRules({doc: tr.doc, terms});
       }
       return decorationSet;
     },
@@ -216,7 +216,7 @@ const getCells = (doc) => {
 //   return applyDecoration({doc, cells: coloredCells});
 // }
 
-const applyRules = ({ doc }) => {
+const applyRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
   let rowVals = [];
@@ -237,7 +237,12 @@ const applyRules = ({ doc }) => {
     if (cellColors[row] === undefined) {
       cellColors[row] = [];
     }
-    cellColors[row][col] = val !== rowVals[row] * colVals[col] && "#fee" || null;
+    const color = (
+      row === 1 && col > 1 && terms[1][col - 2] !== val ||
+      col === 1 && row > 1 && terms[0][row - 2] !== val ||
+      row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
+          && "#fee" || null;
+    cellColors[row][col] = color;
     if (col === 1) {
       rowVals[row] = val;
     } else {
@@ -251,8 +256,7 @@ const applyRules = ({ doc }) => {
   const coloredCells = cells.map(cell => ({
     ...cell,
     color:
-      (cell.col === 1 || cell.row === 1) && "#eee" ||
-      isNaN(cell.val) && "#fff" ||
+      isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
       cellColors[cell.row] && cellColors[cell.row][cell.col] ||
       "#efe",
   }));
@@ -273,7 +277,7 @@ function Editor({ state, reactNodeViews }) {
           'Shift-Tab': goToNextCell(-1),
         }),
         react(),
-        dynamicBackgroundPlugin,
+        dynamicBackgroundPlugin(state.data),
       ]
       // .concat(
       //   exampleSetup({
