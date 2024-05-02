@@ -216,11 +216,34 @@ const getCells = (doc) => {
 //   return applyDecoration({doc, cells: coloredCells});
 // }
 
-const alignTerms = ({ cells, terms }) => {
-  // Align terms with grid shape. If shape is symetrical then leave as is.
-  // Align order with cell values.
+const shapeTermsByValue = ({ cells, terms }) => {
+  let aligned = 0;
+  let unaligned = 0;
+  cells.forEach(({ row, col, val }) => {
+    if (val) {
+      unaligned += row === 1 && terms[0][col - 2] === val && 1 || 0;
+      unaligned += col === 1 && terms[1][row - 2] === val && 1 || 0;
+      aligned += row === 1 && terms[1][col - 2] === val && 1 || 0;
+      aligned += col === 1 && terms[0][row - 2] === val && 1 || 0;
+    }
+  });
+  return unaligned > aligned && terms.reverse() || terms;
+};
+
+const orderTerms = ({ cells, terms }) => {
   cells = cells;
   return terms;
+};
+
+const alignTerms = ({ cells, terms }) => {
+  const { row, col } = cells[cells.length - 1];
+  const dims = [terms[0].length + 1, terms[1].length + 1];
+  const shapedTerms =
+        dims[0] === dims[1] && shapeTermsByValue({cells, terms}) ||
+        col === dims[0] && row == dims[1] && terms.reverse() ||
+        terms;
+  const orderedTerms = orderTerms({cells, terms: shapedTerms});
+  return orderedTerms;
 };
 
 const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
