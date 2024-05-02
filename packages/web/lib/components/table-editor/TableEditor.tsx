@@ -216,6 +216,21 @@ const getCells = (doc) => {
 //   return applyDecoration({doc, cells: coloredCells});
 // }
 
+const alignTerms = ({ cells, terms }) => {
+  // Align terms with grid shape. If shape is symetrical then leave as is.
+  // Align order with cell values.
+  cells = cells;
+  return terms;
+};
+
+const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
+  return (
+    row === 1 && col > 1 && terms[1][col - 2] !== val ||
+      col === 1 && row > 1 && terms[0][row - 2] !== val ||
+      row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
+    && "#fee" || null;
+};
+
 const applyRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
@@ -237,12 +252,6 @@ const applyRules = ({ doc, terms }) => {
     if (cellColors[row] === undefined) {
       cellColors[row] = [];
     }
-    const color = (
-      row === 1 && col > 1 && terms[1][col - 2] !== val ||
-      col === 1 && row > 1 && terms[0][row - 2] !== val ||
-      row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
-          && "#fee" || null;
-    cellColors[row][col] = color;
     if (col === 1) {
       rowVals[row] = val;
     } else {
@@ -252,6 +261,9 @@ const applyRules = ({ doc, terms }) => {
         rowSums[row] += val;
       }
     }
+    const alignedTerms = alignTerms({ cells, terms });
+    const color = getCellColor({row, col, val, rowVals, colVals, terms: alignedTerms});
+    cellColors[row][col] = color;
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
@@ -286,6 +298,7 @@ function Editor({ state, reactNodeViews }) {
       //   }),
       // )
   }));
+  const [ bgColor, setBgColor ] = useState("bg-white");
   
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
@@ -296,6 +309,18 @@ function Editor({ state, reactNodeViews }) {
 
   let doc = editorState.doc.toJSON();
   useEffect(() => {
+    // Compute score from terms and grid.
+    const terms = state.data.terms;
+    const cells = getCells(editorState.doc);
+    const { row, col } = cells[cells.length - 1];
+    const dims = [terms[0].length + 1, terms[1].length + 1];
+    const bgColor = (
+      row === dims[0] && col === dims[1] ||
+      col === dims[0] && row === dims[1]
+    ) && "bg-green-50" || "bg-red-50";
+    if (!state.data.initializeGrid) {
+      setBgColor(bgColor);
+    }
     debouncedApply({
       state,
       type: "change",
@@ -317,7 +342,7 @@ function Editor({ state, reactNodeViews }) {
         dispatchTransaction={dispatchTransaction}
       >
         <Menu showGridButtons={!state.data.initializeGrid} />
-        <div ref={setMount} className="w-fit" />
+        <div ref={setMount} className={`w-fit ${bgColor}`} />
         {renderNodeViews()}
       </ProseMirror>
     </>
