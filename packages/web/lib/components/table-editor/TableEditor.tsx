@@ -216,7 +216,54 @@ const getCells = (doc) => {
 //   return applyDecoration({doc, cells: coloredCells});
 // }
 
+const placeValue = val => {
+  let divisor = 10;
+  while (val >= divisor) {
+    divisor *= 10;
+  }
+  return String(divisor).length - 1;
+}
+
 const shapeTermsByValue = ({ cells, terms }) => {
+  const { row: rowCount, col: colCount } = cells[cells.length - 1];
+  const dims = [terms[0].length + 1, terms[1].length + 1];
+  terms = colCount === dims[0] && rowCount == dims[1] && terms || terms.reverse();
+  // 1. order terms according to cells
+  // 2. shape terms according to cells
+  let rowAligned = 0;
+  let rowUnaligned = 0;
+  let colAligned = 0;
+  let colUnaligned = 0;
+  cells.forEach(({ row, col, val }) => {
+    // Align ascending vs descending terms.
+    if (val) {
+      const pv = placeValue(val);
+      // console.log(
+      //   "pv=" + pv +
+      //     " row=" + row +
+      //     " col=" + col +
+      //     " terms[1]=" + JSON.stringify(terms[1]) +
+      //     " terms[1][terms[1].length - (row - 1)]=" + terms[1][terms[1].length - (row - 1)]
+      // );
+      rowAligned += row === 1 && placeValue(terms[0][col - 2]) === pv && 1 || 0;
+      rowUnaligned += row === 1 && placeValue(terms[0][terms[0].length - (col - 1)]) === pv && 1 || 0;
+      colAligned += col === 1 && placeValue(terms[1][row - 2]) === pv && 1 || 0;
+      colUnaligned += col === 1 && placeValue(terms[1][terms[1].length - (row - 1)]) === pv && 1 || 0;
+      // console.log("shapeTermsByValue() rowAligned=" + rowAligned);
+      // console.log("shapeTermsByValue() rowUnaligned=" + rowUnaligned);
+      // console.log("shapeTermsByValue() colAligned=" + colAligned);
+      // console.log("shapeTermsByValue() colUnaligned=" + colUnaligned);
+    }
+  });
+  if (rowUnaligned > rowAligned) {
+    terms[0] = terms[0].reverse();
+  }
+  if (colUnaligned > colAligned) {
+    terms[1] = terms[1].reverse();
+  }
+
+  // Now pivot grid if necessary.
+
   let aligned = 0;
   let unaligned = 0;
   cells.forEach(({ row, col, val }) => {
@@ -227,23 +274,14 @@ const shapeTermsByValue = ({ cells, terms }) => {
       aligned += col === 1 && terms[0][row - 2] === val && 1 || 0;
     }
   });
-  return unaligned > aligned && terms.reverse() || terms;
-};
-
-const orderTerms = ({ cells, terms }) => {
-  cells = cells;
+  terms = unaligned > aligned && terms.reverse() || terms;
+  // console.log("shapeTermsByValue() terms=" + JSON.stringify(terms, null, 2));
   return terms;
 };
 
 const alignTerms = ({ cells, terms }) => {
-  const { row, col } = cells[cells.length - 1];
-  const dims = [terms[0].length + 1, terms[1].length + 1];
-  const shapedTerms =
-        dims[0] === dims[1] && shapeTermsByValue({cells, terms}) ||
-        col === dims[0] && row == dims[1] && terms.reverse() ||
-        terms;
-  const orderedTerms = orderTerms({cells, terms: shapedTerms});
-  return orderedTerms;
+  const shapedTerms = shapeTermsByValue({cells, terms});
+  return shapedTerms;
 };
 
 const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
