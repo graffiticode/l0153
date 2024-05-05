@@ -238,21 +238,10 @@ const shapeTermsByValue = ({ cells, terms }) => {
     // Align ascending vs descending terms.
     if (val) {
       const pv = placeValue(val);
-      // console.log(
-      //   "pv=" + pv +
-      //     " row=" + row +
-      //     " col=" + col +
-      //     " terms[1]=" + JSON.stringify(terms[1]) +
-      //     " terms[1][terms[1].length - (row - 1)]=" + terms[1][terms[1].length - (row - 1)]
-      // );
       rowAligned += row === 1 && placeValue(terms[0][col - 2]) === pv && 1 || 0;
       rowUnaligned += row === 1 && placeValue(terms[0][terms[0].length - (col - 1)]) === pv && 1 || 0;
       colAligned += col === 1 && placeValue(terms[1][row - 2]) === pv && 1 || 0;
       colUnaligned += col === 1 && placeValue(terms[1][terms[1].length - (row - 1)]) === pv && 1 || 0;
-      // console.log("shapeTermsByValue() rowAligned=" + rowAligned);
-      // console.log("shapeTermsByValue() rowUnaligned=" + rowUnaligned);
-      // console.log("shapeTermsByValue() colAligned=" + colAligned);
-      // console.log("shapeTermsByValue() colUnaligned=" + colUnaligned);
     }
   });
   if (rowUnaligned > rowAligned) {
@@ -268,26 +257,27 @@ const shapeTermsByValue = ({ cells, terms }) => {
   let unaligned = 0;
   cells.forEach(({ row, col, val }) => {
     if (val) {
-      unaligned += row === 1 && terms[0][col - 2] === val && 1 || 0;
-      unaligned += col === 1 && terms[1][row - 2] === val && 1 || 0;
-      aligned += row === 1 && terms[1][col - 2] === val && 1 || 0;
-      aligned += col === 1 && terms[0][row - 2] === val && 1 || 0;
+      // Try to match the terms to the current values regardless or order to see
+      // if we need to pivot or not.
+      unaligned += row === 1 && terms[1][col - 2] === val && 1 || 0;
+      unaligned += row === 1 && terms[1][terms[1].length - (col - 2) - 1] === val && 1 || 0;
+      unaligned += col === 1 && terms[0][row - 2] === val && 1 || 0;
+      unaligned += col === 1 && terms[0][terms[0].length - (row - 2) - 1] === val && 1 || 0;
+
+      aligned   += row === 1 && terms[0][col - 2] === val && 1 || 0;
+      aligned   += row === 1 && terms[0][terms[0].length - (col - 2) - 1] === val && 1 || 0;
+      aligned   += col === 1 && terms[1][row - 2] === val && 1 || 0;
+      aligned   += col === 1 && terms[1][terms[1].length - (row - 2) - 1] === val && 1 || 0;
     }
   });
   terms = unaligned > aligned && terms.reverse() || terms;
-  // console.log("shapeTermsByValue() terms=" + JSON.stringify(terms, null, 2));
   return terms;
-};
-
-const alignTerms = ({ cells, terms }) => {
-  const shapedTerms = shapeTermsByValue({cells, terms});
-  return shapedTerms;
 };
 
 const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
   return (
-    row === 1 && col > 1 && terms[1][col - 2] !== val ||
-      col === 1 && row > 1 && terms[0][row - 2] !== val ||
+    row === 1 && col > 1 && terms[0][col - 2] !== val ||
+      col === 1 && row > 1 && terms[1][row - 2] !== val ||
       row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
     && "#fee" || null;
 };
@@ -322,8 +312,8 @@ const applyRules = ({ doc, terms }) => {
         rowSums[row] += val;
       }
     }
-    const alignedTerms = alignTerms({ cells, terms });
-    const color = getCellColor({row, col, val, rowVals, colVals, terms: alignedTerms});
+    const shapedTerms = shapeTermsByValue({ cells, terms });
+    const color = getCellColor({row, col, val, rowVals, colVals, terms: shapedTerms});
     cellColors[row][col] = color;
   });
   const coloredCells = cells.map(cell => ({
