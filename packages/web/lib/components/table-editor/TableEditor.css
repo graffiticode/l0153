@@ -75,7 +75,8 @@ main {
   vertical-align: middle;
   box-sizing: border-box;
   position: relative;
-  text-align: center;
+  text-align: right;
+  padding: 10px;
   border: 1px solid black;
 }
 .ProseMirror .column-resize-handle {

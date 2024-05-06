@@ -7,6 +7,8 @@ import {
 
 import { Parser } from '@artcompiler/parselatex';
 
+import katex from 'katex';
+
 export class Checker extends BasisChecker {
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
@@ -214,10 +216,17 @@ export class Transformer extends BasisTransformer {
         expandNumber(exprNode.args[0].args[0]),
         expandNumber(exprNode.args[1].args[0]),
       ];
+      const html = katex.renderToString(v0, {
+        displayMode: true,
+        output: "html",
+        throwOnError: false
+      });
+      console.log("EXPRESSION() html=" + html);
       const val = {
-        expression: v0,
+        expression: expr,
         op: exprNode.op,
         terms,
+        html,
       };
       resume(err, val);
     });

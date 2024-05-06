@@ -27,6 +27,8 @@
   "dependencies": {
     "@nytimes/react-prosemirror": "^0.6.1",
     "bent": "^7.3.12",
+    "html-react-parser": "^5.1.10",
+    "katex": "^0.16.10",
     "lodash": "^4.17.21",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-example-setup": "^1.2.2",

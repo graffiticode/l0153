@@ -1,16 +1,5 @@
-// import {
-//   baseKeymap,
-//   chainCommands,
-//   createParagraphNear,
-//   liftEmptyBlock,
-//   newlineInCode,
-//   splitBlock,
-//   toggleMark,
-// } from "prosemirror-commands";
-// import assert from "assert";
 import { keymap } from "prosemirror-keymap";
 import { Schema } from "prosemirror-model";
-//import { liftListItem, splitListItem } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import type { Transaction } from "prosemirror-state";
 import { useCallback, useState, useEffect } from "react";
@@ -32,22 +21,11 @@ import 'prosemirror-gapcursor/style/gapcursor.css';
 import { schema as baseSchema } from 'prosemirror-schema-basic';
 
 import {
-//   addColumnAfter,
-//   addColumnBefore,
-//   deleteColumn,
-//   addRowAfter,
-//   addRowBefore,
-//   deleteRow,
-//   mergeCells,
-//   splitCell,
-//   setCellAttr,
-//   toggleHeaderRow,
-//   toggleHeaderColumn,
-//   toggleHeaderCell,
   goToNextCell,
-//   deleteTable,
 } from 'prosemirror-tables';
 import { tableEditing, columnResizing, tableNodes /*, fixTables*/ } from 'prosemirror-tables';
+
+import parse from 'html-react-parser';
 
 const schema = new Schema({
   nodes: baseSchema.spec.nodes.append(
@@ -89,16 +67,6 @@ const schema = new Schema({
   marks: baseSchema.spec.marks,
 });
 
-// const menu = buildMenuItems(schema).fullMenu;
-// function item(label: string, cmd: (state: EditorState) => boolean) {
-//   return new MenuItem({ label, select: cmd, run: cmd });
-// }
-// const tableMenu = [
-//   item('Insert column after', addColumnAfter),
-//   item('Insert row after', addRowAfter),
-// ];
-// menu.splice(2, 0, [new Dropdown(tableMenu, { label: 'Table' })]);
-
 function Paragraph({ children }: NodeViewComponentProps) {
   return <p onClick={() => console.log('click')}>{children}</p>;
 }
@@ -115,7 +83,7 @@ const createDocNode = doc => {
       table.create(null, [
         table_row.create(null, [
           table_cell.create(cellAttrs, [
-            paragraph.create(null, [schema.text(" ")])
+            paragraph.create(null, [schema.text(" ")]),
           ]),
         ]),
       ])
@@ -126,7 +94,6 @@ const createDocNode = doc => {
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
-// Plugin to dynamically change background color based on content length
 const applyDecoration = ({ doc, cells }) => {
   const decorations = [];
   cells.forEach(({ from, to, color }) => {
@@ -384,7 +351,10 @@ function Editor({ state, reactNodeViews }) {
   return (
     <>
       <div className="py-4">
-        { state.data.problemStatement }{ state.data.expression }
+        { state.data.problemStatement }
+        <div className="p-4 text-4xl font-semibold text-slate-600">
+          { state.data.html && parse(state.data.html) }
+        </div>
       </div>
       <ProseMirror
         mount={mount}
