@@ -133,7 +133,7 @@ const getCells = (doc) => {
     }
     if (node.type.name === "table_cell") {
       col++;
-      const val = Number.parseInt(node.textContent);
+      const val = Number.parseInt(node.textContent.replace(/,/g, ""));
       cells.push({row, col, val, from: pos, to: pos + node.nodeSize});
     }
   });
