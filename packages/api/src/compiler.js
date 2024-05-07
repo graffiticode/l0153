@@ -237,12 +237,11 @@ export class Transformer extends BasisTransformer {
         expandNumber(exprNode.args[0].args[0]),
         expandNumber(exprNode.args[1].args[0]),
       ];
-      const html = katex.renderToString(v0, {
+      const html = katex.renderToString(expr, {
         displayMode: true,
         output: "html",
         throwOnError: false
       });
-      console.log("EXPRESSION() html=" + html);
       const val = {
         expression: expr,
         op: exprNode.op,
