@@ -100,7 +100,7 @@ const buildDocFromTable = ({ cols, rows, rules }) => {
   }
 };
 
-const buildDocFromTerms = ({ terms, rules }) => {
+const buildGridDocFromTerms = ({ terms, rules }) => {
   const colsCount = Math.max(terms[0].length, terms[1].length);
   const rowsCount = Math.min(terms[0].length, terms[1].length);
   const cols = Array.apply(null, Array(colsCount + 1)).map((x, i) => String(i));
@@ -108,6 +108,24 @@ const buildDocFromTerms = ({ terms, rules }) => {
   Array.apply(null, Array(colsCount + 1)).forEach((x, i) => {
     row[String(i)] = "";
   });
+  const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
+  const attrs = applyRules({ cols, rows, rules });
+  return {
+    "type": "doc",
+    "content": [
+      {
+        ...buildTable({cols, rows, attrs}),
+      },
+    ]
+  }
+};
+
+const buildColumnDocFromTerms = ({ terms, rules }) => {
+  const rowsCount =
+        Math.max(terms[0].length, terms[1].length) *
+        Math.min(terms[0].length, terms[1].length);
+  const cols = ["x"];
+  const row = {"x": ""};
   const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
   const attrs = applyRules({ cols, rows, rules });
   return {
@@ -142,11 +160,16 @@ export class Transformer extends BasisTransformer {
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
-        let doc;
+        let gridDoc, columnDoc;
         if (v0.initializeGrid || v1.initializeGrid) {
-          doc = buildDocFromTerms(v1);
+          gridDoc = buildGridDocFromTerms(v1);
+          columnDoc = buildColumnDocFromTerms(v1);
         } else {
-          doc = buildDocFromTable({
+          gridDoc = buildDocFromTable({
+            cols: ["a"],
+            rows: [{a: ""}],
+          });
+          columnDoc = buildDocFromTable({
             cols: ["a"],
             rows: [{a: ""}],
           });
@@ -155,7 +178,8 @@ export class Transformer extends BasisTransformer {
         const val = {
           ...v0,
           ...v1,
-          doc,
+          gridDoc,
+          columnDoc,
         };
         resume(err, val);
       });
@@ -171,9 +195,6 @@ export class Transformer extends BasisTransformer {
               ? data.initializeGrid
               : v0;
         const err = [];
-        console.log("GRID() initializeGrid=" + initializeGrid);
-        console.log("GRID() v0=" + JSON.stringify(v0, null, 2));
-        console.log("GRID() v1=" + JSON.stringify(v1, null, 2));
         const val = {
           ...v1,
           initializeGrid,

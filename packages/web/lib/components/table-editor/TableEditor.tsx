@@ -10,7 +10,8 @@ import type { NodeViewComponentProps } from "@nytimes/react-prosemirror";
 import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 import { react } from "@nytimes/react-prosemirror";
 
-import Menu from "./Menu.js";
+import GridMenu from "./GridMenu.js";
+import SumMenu from "./SumMenu.js";
 import "./TableEditor.css";
 
 import 'prosemirror-view/style/prosemirror.css';
@@ -102,16 +103,37 @@ const applyDecoration = ({ doc, cells }) => {
   return DecorationSet.create(doc, decorations);
 };
 
-const dynamicBackgroundPlugin = ({ terms }) => new Plugin({
+const modelBackgroundPlugin = ({ terms }) => new Plugin({
   state: {
     init(_, { doc }) {
-      return applyRules({doc, terms});
+      return applyModelRules({doc, terms});
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
       if (tr.docChanged) {
-        return applyRules({doc: tr.doc, terms});
+        return applyModelRules({doc: tr.doc, terms});
+      }
+      return decorationSet;
+    },
+  },
+  props: {
+    decorations(state) {
+      return this.getState(state);
+    }
+  }
+});
+
+const columnBackgroundPlugin = ({ terms }) => new Plugin({
+  state: {
+    init(_, { doc }) {
+      return applyColumnRules({doc, terms});
+    },
+    apply(tr, decorationSet, oldState, newState) {
+      oldState = oldState;
+      newState = newState;
+      if (tr.docChanged) {
+        return applyColumnRules({doc: tr.doc, terms});
       }
       return decorationSet;
     },
@@ -126,6 +148,23 @@ const dynamicBackgroundPlugin = ({ terms }) => new Plugin({
 const getCells = (doc) => {
   const cells = [];
   let row = 0, col = 0;
+  doc.descendants((node, pos) => {
+    if (node.type.name === "table_row") {
+      row++;
+      col = 0;
+    }
+    if (node.type.name === "table_cell") {
+      col++;
+      const val = Number.parseInt(node.textContent.replace(/,/g, ""));
+      cells.push({row, col, val, from: pos, to: pos + node.nodeSize});
+    }
+  });
+  return cells;
+};
+
+const getColumnCells = (doc) => {
+  const cells = [];
+  let row = -1, col;
   doc.descendants((node, pos) => {
     if (node.type.name === "table_row") {
       row++;
@@ -241,6 +280,19 @@ const shapeTermsByValue = ({ cells, terms }) => {
   return terms;
 };
 
+const shapeColumnTermsByValue = ({ terms }) => {
+  const flattenedTerms = [];
+  terms[0].forEach(colVal => {
+    terms[1].forEach(rowVal => {
+      flattenedTerms.push(colVal * rowVal);
+    })
+  });
+  const sum = flattenedTerms.reduce((acc, val) => acc + val, 0);
+  flattenedTerms.push(sum);
+  console.log("shapeColumnTerms() flattenedTerms=" + JSON.stringify(flattenedTerms));
+  return flattenedTerms;
+};
+
 const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
   return (
     row === 1 && col > 1 && terms[0][col - 2] !== val ||
@@ -249,7 +301,16 @@ const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
     && "#fee" || null;
 };
 
-const applyRules = ({ doc, terms }) => {
+// const getColumnCellColor = ({ row, col, val, terms }) => {
+//   return (
+//       col === 1 && row > 1 && terms[1][row - 2] !== val ||
+//     //   row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
+//     // && "#fee" ||
+//     null
+//   );
+// };
+
+const applyModelRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
   let rowVals = [];
@@ -293,11 +354,42 @@ const applyRules = ({ doc, terms }) => {
   return applyDecoration({doc, cells: coloredCells});
 }
 
-function Editor({ state, reactNodeViews }) {
+const applyColumnRules = ({ doc, terms }) => {
+  // Multiply first row and first column values and compare to body values.
+  const cells = getColumnCells(doc);
+  console.log("applyColumnRules() terms=" + JSON.stringify(terms, null, 2));
+  console.log("applyColumnRules() cells=" + JSON.stringify(cells, null, 2));
+  let rowSums = [];
+  let cellColors = [];
+  cells.forEach(({ row, col, val }) => {
+    if (rowSums[row] === undefined) {
+      rowSums[row] = val;
+    } else {
+      rowSums[row] += val;
+    }
+    const shapedTerms = shapeColumnTermsByValue({ terms });
+    console.log("applyColumnRules() shapedTerms=" + JSON.stringify(shapedTerms, null, 2));
+    const color = "#fff"; //getColumnCellColor({row, col, val, terms: shapedTerms});
+    if (cellColors[row] === undefined) {
+      cellColors[row] = [];
+    }
+    cellColors[row][col] = color;
+  });
+  const coloredCells = cells.map(cell => ({
+    ...cell,
+    color:
+      isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
+      cellColors[cell.row] && cellColors[cell.row][cell.col] ||
+      "#efe",
+  }));
+  return applyDecoration({doc, cells: coloredCells});
+}
+
+function GridEditor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
-  const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
-  const [ editorState, setEditorState ] = useState(EditorState.create({
-    doc: createDocNode(state.data.doc),
+  const [ modelMount, setModelMount ] = useState<HTMLDivElement | null>(null);
+  const [ modelEditorState, setModelEditorState ] = useState(EditorState.create({
+    doc: createDocNode(state.data.gridDoc),
     schema,
       plugins: [
         columnResizing(),
@@ -307,29 +399,23 @@ function Editor({ state, reactNodeViews }) {
           'Shift-Tab': goToNextCell(-1),
         }),
         react(),
-        dynamicBackgroundPlugin(state.data),
+        modelBackgroundPlugin(state.data),
       ]
-      // .concat(
-      //   exampleSetup({
-      //     schema,
-      //     menuContent: null,
-      //   }),
-      // )
   }));
   const [ bgColor, setBgColor ] = useState("bg-white");
-  
+
   const dispatchTransaction = useCallback(
     (tr: Transaction) => (
-      setEditorState((oldState) => oldState.apply(tr))
+      setModelEditorState((oldState) => oldState.apply(tr))
     ),
     []
   );
 
-  let doc = editorState.doc.toJSON();
+  let doc = modelEditorState.doc.toJSON();
   useEffect(() => {
     // Compute score from terms and grid.
     const terms = state.data.terms;
-    const cells = getCells(editorState.doc);
+    const cells = getCells(modelEditorState.doc);
     const { row, col } = cells[cells.length - 1];
     const dims = [terms[0].length + 1, terms[1].length + 1];
     const bgColor = (
@@ -343,6 +429,73 @@ function Editor({ state, reactNodeViews }) {
       state,
       type: "change",
       args: {
+        gridDoc: doc,
+      },
+    });
+  }, [JSON.stringify(doc)]);
+
+  return (
+      <div className="">
+        <div className="text-lg py-4">
+          Create an area model to find the partial sums of the expression.
+        </div>
+        <ProseMirror
+          mount={modelMount}
+          state={modelEditorState}
+          nodeViews={nodeViews}
+          dispatchTransaction={dispatchTransaction}
+        >
+          <GridMenu showGridButtons={!state.data.initializeGrid} />
+          <div ref={setModelMount} className={`w-fit ${bgColor}`} />
+          {renderNodeViews()}
+        </ProseMirror>
+      </div>
+  );
+}
+
+function ColumnEditor({ state, reactNodeViews }) {
+  const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
+  const [ sumMount, setSumMount ] = useState<HTMLDivElement | null>(null);
+  const [ sumEditorState, setSumEditorState ] = useState(EditorState.create({
+    doc: createDocNode(state.data.columnDoc),
+    schema,
+      plugins: [
+        columnResizing(),
+        tableEditing(),
+        keymap({
+          Tab: goToNextCell(1),
+          'Shift-Tab': goToNextCell(-1),
+        }),
+        react(),
+        columnBackgroundPlugin(state.data),
+      ]
+  }));
+
+  const dispatchTransaction = useCallback(
+    (tr: Transaction) => (
+      setSumEditorState((oldState) => oldState.apply(tr))
+    ),
+    []
+  );
+
+  let doc = sumEditorState.doc.toJSON();
+  useEffect(() => {
+    // Compute score from terms and grid.
+    // const terms = state.data.terms;
+    // const cells = getCells(sumEditorState.doc);
+    // const { row, col } = cells[cells.length - 1];
+    // const dims = [terms[0].length + 1, terms[1].length + 1];
+    // const bgColor = (
+    //   row === dims[0] && col === dims[1] ||
+    //   col === dims[0] && row === dims[1]
+    // ) && "bg-green-50" || "bg-red-50";
+    // if (!state.data.initializeGrid) {
+    //   setBgColor(bgColor);
+    // }
+    debouncedApply({
+      state,
+      type: "change",
+      args: {
         doc,
       },
     });
@@ -350,27 +503,26 @@ function Editor({ state, reactNodeViews }) {
 
   return (
     <>
-      <div className="py-4">
-        { state.data.problemStatement }
-        <div className="p-4 text-4xl font-semibold text-slate-600">
-          { state.data.html && parse(state.data.html) }
+      <div className="">
+        <div className="text-lg py-4">
+          Sum the parts to find the reduced value of the expression.
         </div>
+        <ProseMirror
+          mount={sumMount}
+          state={sumEditorState}
+          nodeViews={nodeViews}
+          dispatchTransaction={dispatchTransaction}
+        >
+          <SumMenu showGridButtons={!state.data.initializeGrid} />
+          <div ref={setSumMount} className={`w-fit`} />
+          {renderNodeViews()}
+        </ProseMirror>
       </div>
-      <ProseMirror
-        mount={mount}
-        state={editorState}
-        nodeViews={nodeViews}
-        dispatchTransaction={dispatchTransaction}
-      >
-        <Menu showGridButtons={!state.data.initializeGrid} />
-        <div ref={setMount} className={`w-fit ${bgColor}`} />
-        {renderNodeViews()}
-      </ProseMirror>
     </>
   );
 }
 
-export function TableEditor({ state }) {
+export function ModelEditor({ state }) {
   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     paragraph: () => ({
       component: Paragraph,
@@ -379,6 +531,36 @@ export function TableEditor({ state }) {
     }),
   };
   return (
-    <Editor state={state} reactNodeViews={reactNodeViews} />
+    <GridEditor state={state} reactNodeViews={reactNodeViews} />
+  );
+}
+
+export function SumEditor({ state }) {
+  const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
+    paragraph: () => ({
+      component: Paragraph,
+      dom: document.createElement("div"),
+      contentDOM: document.createElement("div"),
+    }),
+  };
+  return (
+    <ColumnEditor state={state} reactNodeViews={reactNodeViews} />
+  );
+}
+
+export function TableEditor({ state }) {
+  return (
+    <>
+      <div className="py-4">
+        { state.data.problemStatement }
+        <div className="p-4 text-4xl font-semibold text-slate-600">
+          { state.data.html && parse(state.data.html) }
+        </div>
+      </div>
+      <div className="grid gap-10 grid-cols-1 sm:grid-cols-2">
+        <ModelEditor state={state} />
+        <SumEditor state={state} />
+      </div>
+    </>
   );
 }
