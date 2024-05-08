@@ -164,7 +164,7 @@ const getCells = (doc) => {
 
 const getColumnCells = (doc) => {
   const cells = [];
-  let row = -1, col;
+  let row = 0, col;
   doc.descendants((node, pos) => {
     if (node.type.name === "table_row") {
       row++;
@@ -280,17 +280,26 @@ const shapeTermsByValue = ({ cells, terms }) => {
   return terms;
 };
 
-const shapeColumnTermsByValue = ({ terms }) => {
+const shapeColumnTermsByValue = ({ terms, cells }) => {
   const flattenedTerms = [];
   terms[0].forEach(colVal => {
     terms[1].forEach(rowVal => {
       flattenedTerms.push(colVal * rowVal);
     })
   });
+  const vals = cells.map(cell => cell.val);
+  const unusedTerms = flattenedTerms.slice(0);
+  const shapedTerms = vals.map(val => {
+    const index = val !== null && unusedTerms.indexOf(val);
+    if (index >= 0) {
+      unusedTerms[index] = undefined;
+      return val;
+    }
+    return null;
+  });
   const sum = flattenedTerms.reduce((acc, val) => acc + val, 0);
-  flattenedTerms.push(sum);
-  console.log("shapeColumnTerms() flattenedTerms=" + JSON.stringify(flattenedTerms));
-  return flattenedTerms;
+  shapedTerms[shapedTerms.length - 1] = sum;
+  return shapedTerms;
 };
 
 const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
@@ -301,14 +310,12 @@ const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
     && "#fee" || null;
 };
 
-// const getColumnCellColor = ({ row, col, val, terms }) => {
-//   return (
-//       col === 1 && row > 1 && terms[1][row - 2] !== val ||
-//     //   row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
-//     // && "#fee" ||
-//     null
-//   );
-// };
+const getColumnCellColor = ({ row, col, val, terms }) => {
+  return (
+    col === 1 && terms[row - 1] !== val && "#fee" ||
+    null
+  );
+};
 
 const applyModelRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
@@ -357,29 +364,20 @@ const applyModelRules = ({ doc, terms }) => {
 const applyColumnRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
-  console.log("applyColumnRules() terms=" + JSON.stringify(terms, null, 2));
-  console.log("applyColumnRules() cells=" + JSON.stringify(cells, null, 2));
-  let rowSums = [];
   let cellColors = [];
   cells.forEach(({ row, col, val }) => {
-    if (rowSums[row] === undefined) {
-      rowSums[row] = val;
-    } else {
-      rowSums[row] += val;
+    const shapedTerms = shapeColumnTermsByValue({ terms, cells });
+    const color = getColumnCellColor({row, col, val, terms: shapedTerms});
+    if (cellColors[row - 1] === undefined) {
+      cellColors[row - 1] = [];
     }
-    const shapedTerms = shapeColumnTermsByValue({ terms });
-    console.log("applyColumnRules() shapedTerms=" + JSON.stringify(shapedTerms, null, 2));
-    const color = "#fff"; //getColumnCellColor({row, col, val, terms: shapedTerms});
-    if (cellColors[row] === undefined) {
-      cellColors[row] = [];
-    }
-    cellColors[row][col] = color;
+    cellColors[row - 1][col - 1] = color;
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
     color:
-      isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
-      cellColors[cell.row] && cellColors[cell.row][cell.col] ||
+      isNaN(cell.val) && "#fff" ||
+      cellColors[cell.row - 1] && cellColors[cell.row - 1][cell.col - 1] ||
       "#efe",
   }));
   return applyDecoration({doc, cells: coloredCells});
