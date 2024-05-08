@@ -58,8 +58,21 @@ const schema = new Schema({
             return dom.style.backgroundColor || null;
           },
           setDOMAttr(value, attrs) {
+            console.log("setDOMAttr() background value=" + value + " attrs=" + JSON.stringify(attrs));
             if (value)
               attrs.style = (attrs.style || '') + `background-color: ${value};`;
+          },
+        },
+        border: {
+          default: "1px solid #777",
+          getFromDOM(dom) {
+            console.log("getFromDOM() border=" + dom.style.border);
+            return dom.style.border || null;
+          },
+          setDOMAttr(value, attrs) {
+            console.log("setDOMAttr() border value=" + value + " attrs=" + JSON.stringify(attrs));
+            if (value)
+              attrs.style = (attrs.style || '') + `border:  ${value};`;
           },
         },
       },
@@ -77,7 +90,7 @@ const debouncedApply = debounce(({ state, type, args }) => {
 }, 1000, {leading: true, trailing: true});
 
 const { table, table_row, table_cell, paragraph } = schema.nodes;
-const cellAttrs = {width: "50px", height: "50px", background: "#fff"};
+const cellAttrs = {width: "50px", height: "50px", background: "#fff", "border": "5px solid #000;"};
 const createDocNode = doc => {
   return (
     doc && schema.nodeFromJSON(doc) || schema.node("doc", null, [
@@ -97,8 +110,14 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 
 const applyDecoration = ({ doc, cells }) => {
   const decorations = [];
-  cells.forEach(({ from, to, color }) => {
-    decorations.push(Decoration.node(from, to, { style: `background-color: ${color};` }));
+  cells.forEach(({ from, to, color, border }) => {
+    console.log("applyDecoration() border=" + border);
+    decorations.push(Decoration.node(from, to, {
+      style: `
+        background-color: ${color};
+        border: ${border};
+      `
+    }));
   });
   return DecorationSet.create(doc, decorations);
 };
@@ -353,6 +372,10 @@ const applyModelRules = ({ doc, terms }) => {
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
+    border:
+      cell.col === 1 && "border: 1px solid #333;" ||
+      cell.row === 1 && "border: 1px solid #333;" ||
+      "1px solid #777",
     color:
       isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
       cellColors[cell.row] && cellColors[cell.row][cell.col] ||
@@ -364,9 +387,9 @@ const applyModelRules = ({ doc, terms }) => {
 const applyColumnRules = ({ doc, terms }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
+  const shapedTerms = shapeColumnTermsByValue({ terms, cells });
   let cellColors = [];
   cells.forEach(({ row, col, val }) => {
-    const shapedTerms = shapeColumnTermsByValue({ terms, cells });
     const color = getColumnCellColor({row, col, val, terms: shapedTerms});
     if (cellColors[row - 1] === undefined) {
       cellColors[row - 1] = [];
@@ -375,8 +398,11 @@ const applyColumnRules = ({ doc, terms }) => {
   });
   const coloredCells = cells.map(cell => ({
     ...cell,
+    border:
+      cell.col === 1 && cell.row === shapedTerms.length && "1px solid #333;" ||
+      "1px solid #777",
     color:
-      isNaN(cell.val) && "#fff" ||
+      isNaN(cell.val) && ((cell.col === 1 && cell.row === shapedTerms.length) && "#eee" || "#fff") ||
       cellColors[cell.row - 1] && cellColors[cell.row - 1][cell.col - 1] ||
       "#efe",
   }));
@@ -454,6 +480,7 @@ function GridEditor({ state, reactNodeViews }) {
 function ColumnEditor({ state, reactNodeViews }) {
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ sumMount, setSumMount ] = useState<HTMLDivElement | null>(null);
+  const [ bgColor, setBgColor ] = useState("bg-white");
   const [ sumEditorState, setSumEditorState ] = useState(EditorState.create({
     doc: createDocNode(state.data.columnDoc),
     schema,
@@ -478,18 +505,14 @@ function ColumnEditor({ state, reactNodeViews }) {
 
   let doc = sumEditorState.doc.toJSON();
   useEffect(() => {
-    // Compute score from terms and grid.
-    // const terms = state.data.terms;
-    // const cells = getCells(sumEditorState.doc);
-    // const { row, col } = cells[cells.length - 1];
-    // const dims = [terms[0].length + 1, terms[1].length + 1];
-    // const bgColor = (
-    //   row === dims[0] && col === dims[1] ||
-    //   col === dims[0] && row === dims[1]
-    // ) && "bg-green-50" || "bg-red-50";
-    // if (!state.data.initializeGrid) {
-    //   setBgColor(bgColor);
-    // }
+    const terms = state.data.terms;
+    const cells = getCells(sumEditorState.doc);
+    const { row, col } = cells[cells.length - 1];
+    const dims = [terms[0].length * terms[1].length + 1, 1];
+    const bgColor = row === dims[0] && col === dims[1] && "bg-green-50" || "bg-red-50";
+    if (!state.data.initializeGrid) {
+      setBgColor(bgColor);
+    }
     debouncedApply({
       state,
       type: "change",
@@ -512,7 +535,7 @@ function ColumnEditor({ state, reactNodeViews }) {
           dispatchTransaction={dispatchTransaction}
         >
           <SumMenu showGridButtons={!state.data.initializeGrid} />
-          <div ref={setSumMount} className={`w-fit`} />
+          <div ref={setSumMount} className={`w-fit ${bgColor}`} />
           {renderNodeViews()}
         </ProseMirror>
       </div>
