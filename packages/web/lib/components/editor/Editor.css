@@ -1,7 +1,5 @@
 .ProseMirror {
   border: thin solid #ccc;
-  border-radius: 0.25rem;
-  padding: 1rem;
   outline: none;
 }
 
