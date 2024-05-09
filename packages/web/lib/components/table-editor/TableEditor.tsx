@@ -317,16 +317,16 @@ const shapeColumnTermsByValue = ({ terms, cells }) => {
   return shapedTerms;
 };
 
-const getCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
-  return (
-    row === 1 && col > 1 && terms[0][col - 2] !== val ||
-      col === 1 && row > 1 && terms[1][row - 2] !== val ||
-      row > 1 && col > 1 && val !== rowVals[row] * colVals[col])
-    && "#fee" || null;
+const getGridCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
+  return (row === 1 && col > 1 && terms[0][col - 2] !== val ||
+          col === 1 && row > 1 && terms[1][row - 2] !== val) && "#fdd" ||
+    row > 1 && col > 1 && val !== rowVals[row] * colVals[col] && "#fee" ||
+    null;
 };
 
 const getColumnCellColor = ({ row, col, val, terms }) => {
   return (
+    col === 1 && row === terms.length && terms[row - 1] !== val && "#fdd" ||
     col === 1 && terms[row - 1] !== val && "#fee" ||
     null
   );
@@ -363,7 +363,7 @@ const applyModelRules = ({ doc, terms }) => {
       }
     }
     const shapedTerms = shapeTermsByValue({ cells, terms });
-    const color = getCellColor({row, col, val, rowVals, colVals, terms: shapedTerms});
+    const color = getGridCellColor({row, col, val, rowVals, colVals, terms: shapedTerms});
     cellColors[row][col] = color;
   });
   const coloredCells = cells.map(cell => ({
@@ -376,7 +376,7 @@ const applyModelRules = ({ doc, terms }) => {
     color:
       isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
       cellColors[cell.row] && cellColors[cell.row][cell.col] ||
-      "#efe",
+      (cell.col === 1 || cell.row === 1) && "#dfd" || "#efe"
   }));
   return applyDecoration({doc, cells: coloredCells});
 }
@@ -401,7 +401,8 @@ const applyColumnRules = ({ doc, terms }) => {
     color:
       isNaN(cell.val) && ((cell.col === 1 && cell.row === shapedTerms.length) && "#eee" || "#fff") ||
       cellColors[cell.row - 1] && cellColors[cell.row - 1][cell.col - 1] ||
-      "#efe",
+      cell.col === 1 && cell.row === shapedTerms.length && "#dfd" ||
+      "#efe"
   }));
   return applyDecoration({doc, cells: coloredCells});
 }
@@ -501,7 +502,7 @@ function ColumnEditor({ state, reactNodeViews }) {
     <>
       <div className="">
         <div className="text-lg py-4">
-          Sum the parts to find the reduced value of the expression.
+          Sum the parts to evaluate the expression.
         </div>
         <ProseMirror
           mount={sumMount}

@@ -166,12 +166,18 @@ export class Transformer extends BasisTransformer {
           columnDoc = buildColumnDocFromTerms(v1);
         } else {
           gridDoc = buildDocFromTable({
-            cols: ["a"],
-            rows: [{a: ""}],
+            cols: ["a", "b"],
+            rows: [
+              {a: "", b: ""},
+              {a: "", b: ""},
+            ],
           });
           columnDoc = buildDocFromTable({
             cols: ["a"],
-            rows: [{a: ""}],
+            rows: [
+              {a: ""},
+              {a: ""},
+            ],
           });
         }
         const err = [];
