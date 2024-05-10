@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { Form, Editor, TableEditor } from "./components";
+import { TableEditor } from "./components";
 import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
