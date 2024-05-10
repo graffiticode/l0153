@@ -1,1 +1,1 @@
-export * from "./table-editor";
+export * from "./area-model";

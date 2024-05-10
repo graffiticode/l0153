@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { TableEditor } from "./components";
+import { AreaModel } from "./components";
 import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
@@ -94,7 +94,7 @@ export const View = () => {
 
   return (
     isNonNullNonEmptyObject(state.data) &&
-      <TableEditor state={state} /> ||
+      <AreaModel state={state} /> ||
       <div />
   );
 }

@@ -1,8 +1,8 @@
-import { TableEditor } from './TableEditor';
+import { AreaModel } from './AreaModel';
 
 export default {
   title: 'L0153',
-  component: TableEditor,
+  component: AreaModel,
   parameters: {
     layout: 'centered',
   },

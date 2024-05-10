@@ -3,7 +3,7 @@ import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 
 import GridEditor from "./GridEditor.js";
 import ColumnEditor from "./ColumnEditor.js";
-import "./TableEditor.css";
+import "./AreaModel.css";
 
 import 'prosemirror-view/style/prosemirror.css';
 import 'prosemirror-menu/style/menu.css';
@@ -42,7 +42,7 @@ export function SumEditor({ state }) {
   );
 }
 
-export function TableEditor({ state }) {
+export function AreaModel({ state }) {
   return (
     <>
       <div className="py-4">
