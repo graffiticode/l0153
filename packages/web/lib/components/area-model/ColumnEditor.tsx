@@ -157,18 +157,20 @@ const getColumnCells = (doc) => {
 };
 
 const matchTerms = ({ terms, cells }) => {
-  console.log("matchTerms() terms=" + JSON.stringify(terms));
   const vals = cells.map(cell => cell.val);
   const flattenedTerms = [];
-  const rowVals = [];
+  const rowTots = [];
+  const rowTermIndexes = [];
   terms[0].forEach(colVal => {
-    let rowVal = 0;
+    let rowTot = 0;
+    rowTermIndexes.push([]);
     terms[1].forEach(rowVal => {
       const cellVal = rowVal * colVal;
       flattenedTerms.push(cellVal);
-      rowVal += cellVal;
+      rowTermIndexes[rowTermIndexes.length - 1].push(flattenedTerms.length - 1);
+      rowTot += cellVal;
     });
-    rowVals.push(rowVal);
+    rowTots.push(rowTot);
   });
   const unusedTerms = flattenedTerms.slice(0);
   const shapedTerms = vals.map(val => {
@@ -177,22 +179,19 @@ const matchTerms = ({ terms, cells }) => {
       unusedTerms[index] = undefined;
       return val;
     }
-    const rowIndex = val !== null && rowVals.indexOf(val);
+    const rowIndex = val !== null && rowTots.indexOf(val);
     if (rowIndex >= 0) {
-      const rowTerms = terms[rowIndex];
-      rowTerms.forEach((_, index) => {
+      rowTermIndexes[rowIndex].forEach(index => {
         unusedTerms[index] = undefined;
       });
       return val;
     }
     return null;
   });
-  console.log("matchTerms() shapedTerms=" + JSON.stringify(shapedTerms));
   return shapedTerms;
 };
 
 const shapeColumnTermsByValue = ({ terms, cells }) => {
-  console.log("shapeColumnTermsByValue() terms=" + JSON.stringify(terms));
   // const rowVals = [];
   // const flattenedTerms = [];
   // terms[0].forEach(colVal => {
@@ -238,7 +237,6 @@ const getColumnCellColor = ({ row, col, val, terms }) => {
 };
 
 const applyColumnRules = ({ doc, terms }) => {
-  console.log("applyColumnRules()");
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
   const shapedTerms = shapeColumnTermsByValue({ terms, cells });
