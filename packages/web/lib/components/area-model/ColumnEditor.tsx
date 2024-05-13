@@ -265,16 +265,16 @@ export default function ColumnEditor({ state, reactNodeViews }) {
     []
   );
 
-  let doc = sumEditorState.doc.toJSON();
+  let columnDoc = sumEditorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       args: {
-        doc,
+        columnDoc,
       },
     });
-  }, [JSON.stringify(doc)]);
+  }, [JSON.stringify(columnDoc)]);
 
   return (
     <>

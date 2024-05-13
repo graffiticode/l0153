@@ -291,16 +291,16 @@ export default function GridEditor({ state, reactNodeViews }) {
     []
   );
 
-  let doc = modelEditorState.doc.toJSON();
+  let gridDoc = modelEditorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       args: {
-        gridDoc: doc,
+        gridDoc,
       },
     });
-  }, [JSON.stringify(doc)]);
+  }, [JSON.stringify(gridDoc)]);
 
   return (
       <div className="">
