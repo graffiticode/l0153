@@ -162,8 +162,8 @@ export class Transformer extends BasisTransformer {
         let gridDoc = data.gridDoc;
         let columnDoc = data.columnDoc;
         if (v0.initializeGrid || v1.initializeGrid) {
-          gridDoc = gridDoc || buildGridDocFromTerms(v1);
-          columnDoc = columnDoc || buildColumnDocFromTerms(v1);
+          gridDoc = buildGridDocFromTerms(v1);
+          columnDoc = buildColumnDocFromTerms(v1);
         } else {
           gridDoc = gridDoc || buildDocFromTable({
             cols: ["a", "b"],
