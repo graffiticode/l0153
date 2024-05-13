@@ -161,10 +161,10 @@ const matchTerms = ({ terms, cells }) => {
   const rowTots = [];
   const rowTermIndexes = [];
   const flattenedTerms = [];
-  terms[0].forEach(colVal => {
+  terms[1].forEach(colVal => {
     let rowTot = 0;
     rowTermIndexes.push([]);
-    terms[1].forEach(rowVal => {
+    terms[0].forEach(rowVal => {
       const cellVal = rowVal * colVal;
       flattenedTerms.push(cellVal);
       rowTermIndexes[rowTermIndexes.length - 1].push(flattenedTerms.length - 1);
@@ -285,7 +285,7 @@ export default function ColumnEditor({ state, reactNodeViews }) {
           nodeViews={nodeViews}
           dispatchTransaction={dispatchTransaction}
         >
-          <ColumnMenu showGridButtons={!state.data.initializeGrid} />
+          <ColumnMenu showGridButtons={true} />
           <div ref={setSumMount} className={`w-fit`} />
           {renderNodeViews()}
         </ProseMirror>

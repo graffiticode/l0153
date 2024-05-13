@@ -121,9 +121,7 @@ const buildGridDocFromTerms = ({ terms, rules }) => {
 };
 
 const buildColumnDocFromTerms = ({ terms, rules }) => {
-  const rowsCount =
-        Math.max(terms[0].length, terms[1].length) *
-        Math.min(terms[0].length, terms[1].length);
+  const rowsCount = Math.min(terms[0].length, terms[1].length);
   const cols = ["x"];
   const row = {"x": ""};
   const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
