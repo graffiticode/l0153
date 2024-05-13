@@ -15,6 +15,7 @@ function isNonNullNonEmptyObject(obj) {
 }
 
 export const View = () => {
+  xxx
   const [ id, setId ] = useState();
   const [ accessToken, setAccessToken ] = useState();
   const [ doGetData, setDoGetData ] = useState(true);
@@ -91,7 +92,7 @@ export const View = () => {
     });
     setRecompile(false);
   }
-
+  console.log("view()");
   return (
     isNonNullNonEmptyObject(state.data) &&
       <AreaModel state={state} /> ||

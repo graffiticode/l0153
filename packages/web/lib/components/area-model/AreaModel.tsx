@@ -43,6 +43,7 @@ export function SumEditor({ state }) {
 }
 
 export function AreaModel({ state }) {
+  console.log("AreaModel()");
   return (
     <>
       <div className="py-4">

@@ -156,14 +156,20 @@ const getColumnCells = (doc) => {
   return cells;
 };
 
-const shapeColumnTermsByValue = ({ terms, cells }) => {
-  const flattenedTerms = [];
-  terms[0].forEach(colVal => {
-    terms[1].forEach(rowVal => {
-      flattenedTerms.push(colVal * rowVal);
-    })
-  });
+const matchTerms = ({ terms, cells }) => {
+  console.log("matchTerms() terms=" + JSON.stringify(terms));
   const vals = cells.map(cell => cell.val);
+  const flattenedTerms = [];
+  const rowVals = [];
+  terms[0].forEach(colVal => {
+    let rowVal = 0;
+    terms[1].forEach(rowVal => {
+      const cellVal = rowVal * colVal;
+      flattenedTerms.push(cellVal);
+      rowVal += cellVal;
+    });
+    rowVals.push(rowVal);
+  });
   const unusedTerms = flattenedTerms.slice(0);
   const shapedTerms = vals.map(val => {
     const index = val !== null && unusedTerms.indexOf(val);
@@ -171,8 +177,53 @@ const shapeColumnTermsByValue = ({ terms, cells }) => {
       unusedTerms[index] = undefined;
       return val;
     }
+    const rowIndex = val !== null && rowVals.indexOf(val);
+    if (rowIndex >= 0) {
+      const rowTerms = terms[rowIndex];
+      rowTerms.forEach((_, index) => {
+        unusedTerms[index] = undefined;
+      });
+      return val;
+    }
     return null;
   });
+  console.log("matchTerms() shapedTerms=" + JSON.stringify(shapedTerms));
+  return shapedTerms;
+};
+
+const shapeColumnTermsByValue = ({ terms, cells }) => {
+  console.log("shapeColumnTermsByValue() terms=" + JSON.stringify(terms));
+  // const rowVals = [];
+  // const flattenedTerms = [];
+  // terms[0].forEach(colVal => {
+  //   rowVals.push([0]);
+  //   terms[1].forEach(rowVal => {
+  //     const cellVal = rowVal * colVal;
+  //     flattenedTerms.push(cellVal);
+  //     rowVals.peek().push(cellVal);
+  //   });
+  // });
+  // const vals = cells.map(cell => cell.val);
+  // const unusedTerms = flattenedTerms.slice(0);
+  // const shapedTerms = vals.map(val => {
+  //   const index = val !== null && unusedTerms.indexOf(val);
+  //   if (index >= 0) {
+  //     unusedTerms[index] = undefined;
+  //     return val;
+  //   }
+  //   return null;
+  // });
+  // terms[0].forEach(colVal => {
+  //   let rowVal = 0;
+  //   terms[1].forEach(rowVal => {
+  //     const cellVal = rowVal * colVal;
+  //     flattenedTerms.push(cellVal);
+  //     rowVal += cellVal;
+  //   });
+  //   rowVals.push(rowVal);
+  // });
+  const flattenedTerms = [];
+  const shapedTerms = matchTerms({terms, cells});
   const sum = flattenedTerms.reduce((acc, val) => acc + val, 0);
   shapedTerms[shapedTerms.length - 1] = sum;
   return shapedTerms;
@@ -187,6 +238,7 @@ const getColumnCellColor = ({ row, col, val, terms }) => {
 };
 
 const applyColumnRules = ({ doc, terms }) => {
+  console.log("applyColumnRules()");
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
   const shapedTerms = shapeColumnTermsByValue({ terms, cells });
