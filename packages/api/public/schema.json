@@ -12,6 +12,10 @@
     "initializeGrid": {
       "description": "Provide the grid by default",
       "type": "boolean"
+    },
+    "showFeedback": {
+      "description": "Give feedback visually",
+      "type": "boolean"
     }
   },
   "required": []

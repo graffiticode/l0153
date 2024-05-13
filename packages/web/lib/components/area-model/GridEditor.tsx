@@ -111,16 +111,16 @@ const applyDecoration = ({ doc, cells }) => {
   return DecorationSet.create(doc, decorations);
 };
 
-const modelBackgroundPlugin = ({ terms }) => new Plugin({
+const modelBackgroundPlugin = ({ terms, showFeedback }) => new Plugin({
   state: {
     init(_, { doc }) {
-      return applyModelRules({doc, terms});
+      return applyModelRules({doc, terms, showFeedback });
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
       if (tr.docChanged) {
-        return applyModelRules({doc: tr.doc, terms});
+        return applyModelRules({doc: tr.doc, terms, showFeedback});
       }
       return decorationSet;
     },
@@ -214,7 +214,7 @@ const getGridCellColor = ({ row, col, val, rowVals, colVals, terms }) => {
     null;
 };
 
-const applyModelRules = ({ doc, terms }) => {
+const applyModelRules = ({ doc, terms, showFeedback }) => {
   // Multiply first row and first column values and compare to body values.
   const cells = getCells(doc);
   let rowVals = [];
@@ -256,9 +256,12 @@ const applyModelRules = ({ doc, terms }) => {
       cell.row === 1 && "border: 1px solid #aaa; border-bottom: 1.5px solid #333;" ||
       "border: 1px solid #aaa;",
     color:
-      isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
-      cellColors[cell.row] && cellColors[cell.row][cell.col] ||
-      (cell.col === 1 || cell.row === 1) && "#dfd" || "#efe"
+      showFeedback && (
+        isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
+        cellColors[cell.row] && cellColors[cell.row][cell.col] ||
+          (cell.col === 1 || cell.row === 1) && "#dfd" || "#efe") ||
+      (cell.col === 1 || cell.row === 1) && "#eee" ||
+      "#fff"
   }));
   return applyDecoration({doc, cells: coloredCells});
 }

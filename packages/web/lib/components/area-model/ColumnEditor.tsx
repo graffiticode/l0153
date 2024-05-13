@@ -118,16 +118,16 @@ const applyDecoration = ({ doc, cells }) => {
   return DecorationSet.create(doc, decorations);
 };
 
-const columnBackgroundPlugin = ({ terms }) => new Plugin({
+const columnBackgroundPlugin = ({ terms, showFeedback }) => new Plugin({
   state: {
     init(_, { doc }) {
-      return applyColumnRules({doc, terms});
+      return applyColumnRules({doc, terms, showFeedback});
     },
     apply(tr, decorationSet, oldState, newState) {
       oldState = oldState;
       newState = newState;
       if (tr.docChanged) {
-        return applyColumnRules({doc: tr.doc, terms});
+        return applyColumnRules({doc: tr.doc, terms, showFeedback});
       }
       return decorationSet;
     },
@@ -211,7 +211,10 @@ const getColumnCellColor = ({ row, col, val, terms }) => {
   );
 };
 
-const applyColumnRules = ({ doc, terms }) => {
+const applyColumnRules = ({ doc, terms, showFeedback }) => {
+  if (!showFeedback) {
+    return null;
+  }
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
   const shapedTerms = shapeColumnTermsByValue({ terms, cells });

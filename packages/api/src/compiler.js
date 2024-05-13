@@ -158,19 +158,21 @@ export class Transformer extends BasisTransformer {
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
-        let gridDoc, columnDoc;
+        const data = options?.data || {};
+        let gridDoc = data.gridDoc;
+        let columnDoc = data.columnDoc;
         if (v0.initializeGrid || v1.initializeGrid) {
-          gridDoc = buildGridDocFromTerms(v1);
-          columnDoc = buildColumnDocFromTerms(v1);
+          gridDoc = gridDoc || buildGridDocFromTerms(v1);
+          columnDoc = columnDoc || buildColumnDocFromTerms(v1);
         } else {
-          gridDoc = buildDocFromTable({
+          gridDoc = gridDoc || buildDocFromTable({
             cols: ["a", "b"],
             rows: [
               {a: "", b: ""},
               {a: "", b: ""},
             ],
           });
-          columnDoc = buildDocFromTable({
+          columnDoc = columnDoc || buildDocFromTable({
             cols: ["a"],
             rows: [
               {a: ""},
@@ -202,6 +204,24 @@ export class Transformer extends BasisTransformer {
         const val = {
           ...v1,
           initializeGrid,
+        };
+        resume(err, val);
+      });
+    });
+  }
+
+  SHOW_FEEDBACK(node, options, resume) {
+    this.visit(node.elts[1], options, async (e1, v1) => {
+      this.visit(node.elts[0], options, async (e0, v0) => {
+        const data = options?.data || {};
+        const showFeedback =
+              data.showFeedback !== undefined
+              ? data.showFeedback
+              : v0;
+        const err = [];
+        const val = {
+          ...v1,
+          showFeedback,
         };
         resume(err, val);
       });
