@@ -158,9 +158,9 @@ const getColumnCells = (doc) => {
 
 const matchTerms = ({ terms, cells }) => {
   const vals = cells.map(cell => cell.val);
-  const flattenedTerms = [];
   const rowTots = [];
   const rowTermIndexes = [];
+  const flattenedTerms = [];
   terms[0].forEach(colVal => {
     let rowTot = 0;
     rowTermIndexes.push([]);
@@ -181,10 +181,15 @@ const matchTerms = ({ terms, cells }) => {
     }
     const rowIndex = val !== null && rowTots.indexOf(val);
     if (rowIndex >= 0) {
+      let isUsed = false;
       rowTermIndexes[rowIndex].forEach(index => {
-        unusedTerms[index] = undefined;
+        if (unusedTerms[index] === undefined) {
+          isUsed = true;
+        } else {
+          unusedTerms[index] = undefined;
+        }
       });
-      return val;
+      return isUsed ? null : val;
     }
     return null;
   });
@@ -192,39 +197,9 @@ const matchTerms = ({ terms, cells }) => {
 };
 
 const shapeColumnTermsByValue = ({ terms, cells }) => {
-  // const rowVals = [];
-  // const flattenedTerms = [];
-  // terms[0].forEach(colVal => {
-  //   rowVals.push([0]);
-  //   terms[1].forEach(rowVal => {
-  //     const cellVal = rowVal * colVal;
-  //     flattenedTerms.push(cellVal);
-  //     rowVals.peek().push(cellVal);
-  //   });
-  // });
-  // const vals = cells.map(cell => cell.val);
-  // const unusedTerms = flattenedTerms.slice(0);
-  // const shapedTerms = vals.map(val => {
-  //   const index = val !== null && unusedTerms.indexOf(val);
-  //   if (index >= 0) {
-  //     unusedTerms[index] = undefined;
-  //     return val;
-  //   }
-  //   return null;
-  // });
-  // terms[0].forEach(colVal => {
-  //   let rowVal = 0;
-  //   terms[1].forEach(rowVal => {
-  //     const cellVal = rowVal * colVal;
-  //     flattenedTerms.push(cellVal);
-  //     rowVal += cellVal;
-  //   });
-  //   rowVals.push(rowVal);
-  // });
-  const flattenedTerms = [];
+  let sumTotal = terms[0].reduce((acc, colVal) => acc + terms[1].reduce((acc, rowVal) => acc + rowVal * colVal, 0), 0);
   const shapedTerms = matchTerms({terms, cells});
-  const sum = flattenedTerms.reduce((acc, val) => acc + val, 0);
-  shapedTerms[shapedTerms.length - 1] = sum;
+  shapedTerms[shapedTerms.length - 1] = sumTotal;
   return shapedTerms;
 };
 
