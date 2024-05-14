@@ -259,7 +259,8 @@ const applyModelRules = ({ doc, terms, showFeedback }) => {
       showFeedback && (
         isNaN(cell.val) && ((cell.col === 1 || cell.row === 1) && "#eee" || "#fff") ||
         cellColors[cell.row] && cellColors[cell.row][cell.col] ||
-          (cell.col === 1 || cell.row === 1) && "#dfd" || "#efe") ||
+          (cell.col === 1 || cell.row === 1) && "#dfd" || "#efe"
+      ) ||
       (cell.col === 1 || cell.row === 1) && "#eee" ||
       "#fff"
   }));
