@@ -212,9 +212,6 @@ const getColumnCellColor = ({ row, col, val, terms }) => {
 };
 
 const applyColumnRules = ({ doc, terms, showFeedback }) => {
-  if (!showFeedback) {
-    return null;
-  }
   // Multiply first row and first column values and compare to body values.
   const cells = getColumnCells(doc);
   const shapedTerms = shapeColumnTermsByValue({ terms, cells });
@@ -232,10 +229,14 @@ const applyColumnRules = ({ doc, terms, showFeedback }) => {
     cell.col === 1 && cell.row === shapedTerms.length && "border: 1px solid #aaa; border-top: 1.5px solid #333;" ||
       "border: 1px solid #aaa",
     color:
-      isNaN(cell.val) && ((cell.col === 1 && cell.row === shapedTerms.length) && "#eee" || "#fff") ||
-      cellColors[cell.row - 1] && cellColors[cell.row - 1][cell.col - 1] ||
-      cell.col === 1 && cell.row === shapedTerms.length && "#dfd" ||
-      "#efe"
+      showFeedback && (
+        isNaN(cell.val) && (cell.row === shapedTerms.length && "#eee" || "#fff") ||
+        cellColors[cell.row - 1] && cellColors[cell.row - 1][cell.col - 1] ||
+        cell.row === shapedTerms.length && "#dfd" ||
+        "#efe"
+      ) ||
+      cell.row === shapedTerms.length && "#eee" ||
+      "#fff"
   }));
   return applyDecoration({doc, cells: coloredCells});
 }
