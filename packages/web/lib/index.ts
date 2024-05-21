@@ -1,1 +1,2 @@
-export { View } from "./view";
+import './index.css';
+export { View, AreaModel } from "./view";

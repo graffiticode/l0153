@@ -76,7 +76,7 @@ const schema = new Schema({
 });
 
 const debouncedApply = debounce(({ state, type, args }) => {
-  state.apply({type, args});
+  state.apply && state.apply({type, args});
 }, 1000, {leading: true, trailing: true});
 
 const { table, table_row, table_cell, paragraph } = schema.nodes;
