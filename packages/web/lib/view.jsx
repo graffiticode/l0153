@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { AreaModel } from "./components";
 import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
 import './index.css';
+import { AreaModel } from "./components";
+export { AreaModel } from "./components";
 
 function isNonNullNonEmptyObject(obj) {
   return (
