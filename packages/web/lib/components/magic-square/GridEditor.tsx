@@ -17,6 +17,10 @@ import 'prosemirror-menu/style/menu.css';
 import 'prosemirror-example-setup/style/style.css';
 import 'prosemirror-gapcursor/style/gapcursor.css';
 
+import { Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+
+
 import { schema as baseSchema } from 'prosemirror-schema-basic';
 
 import {
@@ -94,9 +98,6 @@ const createDocNode = doc => {
   );
 };
 
-import { Plugin } from "prosemirror-state";
-import { Decoration, DecorationSet } from "prosemirror-view";
-
 const applyDecoration = ({ doc, cells }) => {
   const decorations = [];
   cells.forEach(({ from, to, color, border }) => {
@@ -148,14 +149,6 @@ const getCells = (doc) => {
   return cells;
 };
 
-/*
-[
-   [4, 3, 8],
-   [9, 5, 1],
-   [2, 7, 6],
-]
-*/
-
 function rotateGrid({ grid, turns }) {
   turns = turns % 4;  // Normalize the number of turns
   while (turns > 0) {
@@ -195,47 +188,21 @@ const matchTermsToCells = ({ cells, terms }) => {
     0
   );
   const termsMatched = reflectedRotatedTermsList[termsMatchedIndex];
-  console.log("matchTermsToCells() termsMatchedIndex=" + termsMatchedIndex + " termsMatched=" + JSON.stringify(termsMatched));
   return termsMatched;
 };
 
 const getGridCellColor = ({ val, term }) => {
-  // console.log("getGridCellColor() matchedTerms=" + JSON.stringify(matchedTerms));
-  // console.log("getGridCellColor() val=" + JSON.stringify(val));
   return val === term && "#efe" || "#fee";
 };
 
 const applyModelRules = ({ doc, terms, showFeedback }) => {
   const cells = getCells(doc);
-  // let rowVals = [];
-  // let colVals = [];
-  // let rowSums = [];
-  // let colSums = [];
   let cellColors = [];
   const shapedTerms = matchTermsToCells({ cells, terms });
   cells.forEach(({ row, col, val }) => {
-//     if (row === 1) {
-//       colVals[col] = val;
-//     } else {
-//       if (colSums[col] === undefined) {
-//         colSums[col] = val;
-//       } else {
-//         colSums[col] += val;
-//       }
-//     }
     if (cellColors[row] === undefined) {
       cellColors[row] = [];
     }
-//     if (col === 1) {
-//       rowVals[row] = val;
-//     } else {
-//       if (rowSums[row] === undefined) {
-//         rowSums[row] = val;
-//       } else {
-//         rowSums[row] += val;
-//       }
-//     }
-// //    console.log("applyModelRules() row=" + row + " col=" + col + " terms=" + JSON.stringify(terms));
     const term = shapedTerms[row - 1][col - 1];
     const color = getGridCellColor({val, term});
     cellColors[row][col] = color;
