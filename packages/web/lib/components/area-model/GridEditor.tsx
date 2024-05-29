@@ -321,32 +321,3 @@ export default function GridEditor({ state, reactNodeViews }) {
       </div>
   );
 }
-
-// export function ModelEditor({ state }) {
-//   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
-//     paragraph: () => ({
-//       component: Paragraph,
-//       dom: document.createElement("div"),
-//       contentDOM: document.createElement("div"),
-//     }),
-//   };
-//   return (
-//     <GridEditor state={state} reactNodeViews={reactNodeViews} />
-//   );
-// }
-
-// export function TableEditor({ state }) {
-//   return (
-//     <>
-//       <div className="py-4">
-//         { state.data.problemStatement }
-//         <div className="p-4 text-4xl font-semibold text-slate-600">
-//           { state.data.html && parse(state.data.html) }
-//         </div>
-//       </div>
-//       <div className="grid gap-10 grid-cols-1 sm:grid-cols-2">
-//         <ModelEditor state={state} />
-//       </div>
-//     </>
-//   );
-// }

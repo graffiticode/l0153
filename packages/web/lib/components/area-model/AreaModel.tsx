@@ -43,7 +43,6 @@ export function SumEditor({ state }) {
 }
 
 export function AreaModel({ state }) {
-  console.log("L0153 AreaModel() state=" + JSON.stringify(state));
   return (
     (state === undefined || state.data === undefined) &&
     <div /> ||

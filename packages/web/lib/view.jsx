@@ -4,8 +4,8 @@ import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
 import './index.css';
-import { AreaModel } from "./components";
-export { AreaModel } from "./components";
+import { AreaModel, MagicSquare } from "./components";
+export { AreaModel, MagicSquare } from "./components";
 
 function isNonNullNonEmptyObject(obj) {
   return (
@@ -39,7 +39,7 @@ export const View = () => {
   }, [id]);
 
   const [ state ] = useState(createState({}, (data, { type, args }) => {
-    // console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
+//    console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
     switch (type) {
     case "compile":
       return {
@@ -93,8 +93,10 @@ export const View = () => {
     setRecompile(false);
   }
   return (
-    isNonNullNonEmptyObject(state.data) &&
-      <AreaModel state={state} /> ||
-      <div />
+    isNonNullNonEmptyObject(state.data) && (
+      state.data.type === "magic-square" && <MagicSquare state={state} /> ||
+        state.data.type === "area-model" && <AreaModel state={state} /> ||
+        <AreaModel state={state} />
+    ) || <div />
   );
 }

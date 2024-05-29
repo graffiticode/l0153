@@ -1,2 +1,2 @@
 import './index.css';
-export { View, AreaModel } from "./view";
+export { View, AreaModel, MagicSquare } from "./view";

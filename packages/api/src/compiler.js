@@ -155,6 +155,30 @@ const applyRules = ({ cols, rows, rules }) => {
 };
 
 export class Transformer extends BasisTransformer {
+  MAGIC_SQUARE(node, options, resume) {
+    this.visit(node.elts[1], options, async (e1, v1) => {
+      this.visit(node.elts[0], options, async (e0, v0) => {
+        const data = options?.data || {};
+        let gridDoc = buildDocFromTable({
+          cols: ["a", "b", "c"],
+          rows: [
+            {a: "", b: "", c: ""},
+            {a: "", b: "", c: ""},
+            {a: "", b: "", c: ""},
+          ],
+        });
+        const err = [];
+        const val = {
+          type: "magic-square",
+          ...v0,
+          ...v1,
+          gridDoc,
+        };
+        resume(err, val);
+      });
+    });
+  }
+
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
@@ -182,6 +206,7 @@ export class Transformer extends BasisTransformer {
         }
         const err = [];
         const val = {
+          type: "area-model",
           ...v0,
           ...v1,
           gridDoc,
@@ -258,8 +283,9 @@ export class Transformer extends BasisTransformer {
       const expr = data.expression || v0;
       const exprNode = Parser.create({allowThousandsSeparator: true}, expr);
       const terms = [
-        expandNumber(exprNode.args[0].args[0]),
-        expandNumber(exprNode.args[1].args[0]),
+        [4, 3, 8],
+        [9, 5, 1],
+        [2, 7, 6],
       ];
       const html = katex.renderToString(expr, {
         displayMode: true,
