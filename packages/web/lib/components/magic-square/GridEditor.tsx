@@ -103,6 +103,7 @@ const applyDecoration = ({ doc, cells }) => {
   cells.forEach(({ from, to, color, border }) => {
     decorations.push(Decoration.node(from, to, {
       style: `
+        text-align: center;
         background-color: ${color};
         ${border};
       `
@@ -260,9 +261,6 @@ export default function GridEditor({ state, reactNodeViews }) {
 
   return (
       <div className="">
-        <div className="text-lg py-4">
-          Complete the Magic Square.
-        </div>
         <ProseMirror
           mount={modelMount}
           state={modelEditorState}

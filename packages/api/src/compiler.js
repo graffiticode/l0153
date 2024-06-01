@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, ARTCOMPILER INC */
+import assert from "assert";
 import {
   Checker as BasisChecker,
   Transformer as BasisTransformer,
@@ -88,8 +88,8 @@ const buildTable = ({ cols, rows, attrs }) => {
   })
 };
 
-const buildDocFromTable = ({ cols, rows, rules }) => {
-  const attrs = applyRules({ cols, rows, rules });
+const buildDocFromTable = ({ cols, rows }) => {
+  const attrs = applyRules({ cols, rows });
   return {
     "type": "doc",
     "content": [
@@ -100,7 +100,7 @@ const buildDocFromTable = ({ cols, rows, rules }) => {
   }
 };
 
-const buildGridDocFromTerms = ({ terms, rules }) => {
+const buildGridDocFromTerms = ({ terms }) => {
   const colsCount = Math.max(terms[0].length, terms[1].length);
   const rowsCount = Math.min(terms[0].length, terms[1].length);
   const cols = Array.apply(null, Array(colsCount + 1)).map((x, i) => String(i));
@@ -109,7 +109,7 @@ const buildGridDocFromTerms = ({ terms, rules }) => {
     row[String(i)] = "";
   });
   const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
-  const attrs = applyRules({ cols, rows, rules });
+  const attrs = applyRules({ cols, rows });
   return {
     "type": "doc",
     "content": [
@@ -120,12 +120,12 @@ const buildGridDocFromTerms = ({ terms, rules }) => {
   }
 };
 
-const buildColumnDocFromTerms = ({ terms, rules }) => {
+const buildColumnDocFromTerms = ({ terms }) => {
   const rowsCount = Math.min(terms[0].length, terms[1].length);
   const cols = ["x"];
   const row = {"x": ""};
   const rows = Array.apply(null, Array(rowsCount + 1)).map((x, i) => row);
-  const attrs = applyRules({ cols, rows, rules });
+  const attrs = applyRules({ cols, rows });
   return {
     "type": "doc",
     "content": [
@@ -136,8 +136,7 @@ const buildColumnDocFromTerms = ({ terms, rules }) => {
   }
 };
 
-const applyRules = ({ cols, rows, rules }) => {
-  rules = rules;
+const applyRules = ({ cols, rows }) => {
   const argsCols = cols.slice(0, cols.length - 1);
   const totalCol = cols[cols.length - 1];
   const rowAttrs = []
@@ -154,27 +153,54 @@ const applyRules = ({ cols, rows, rules }) => {
   return rowAttrs;
 };
 
+const scaleTerms = ({ terms, scale }) =>
+      terms.map(row => row.map(val => val + scale));
+
+const makeMagicGrid = ({ order, scale }) => {
+  const terms = scaleTerms({
+    terms: [
+      [4, 3, 8],
+      [9, 5, 1],
+      [2, 7, 6],
+    ],
+    scale,
+  });
+  let gridDoc = buildDocFromTable({
+    cols: ["a", "b", "c"],
+    rows: [
+      {a: "", b: "", c: ""},
+      {a: "", b: "", c: ""},
+      {a: "", b: "", c: ""},
+    ],
+  });
+  return {
+    terms,
+    gridDoc,
+  };
+};
+
 export class Transformer extends BasisTransformer {
   MAGIC_SQUARE(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
-        const data = options?.data || {};
-        let gridDoc = buildDocFromTable({
-          cols: ["a", "b", "c"],
-          rows: [
-            {a: "", b: "", c: ""},
-            {a: "", b: "", c: ""},
-            {a: "", b: "", c: ""},
-          ],
-        });
-        const err = [];
-        const val = {
-          type: "magic-square",
-          ...v0,
-          ...v1,
-          gridDoc,
-        };
-        resume(err, val);
+        try {
+          const data = options?.data || {};
+          const order = 3;
+          const sum = +v1.exprNode.args[0];
+          assert(sum % order === 0, "invalid sum: " + sum);
+          const scale = sum / 3 - 5;
+          const err = [];
+          const val = {
+            type: "magic-square",
+            ...v0,
+            ...v1,
+            ...makeMagicGrid({ order, scale }),
+          };
+          resume(err, val);
+        } catch (err) {
+          console.log("catch err=" + err);
+          resume([], {err: err.toString()});
+        }
       });
     });
   }
@@ -185,9 +211,14 @@ export class Transformer extends BasisTransformer {
         const data = options?.data || {};
         let gridDoc = data.gridDoc;
         let columnDoc = data.columnDoc;
+        const { exprNode } = v1;
+        const terms = [
+          expandNumber(exprNode.args[0].args[0]),
+          expandNumber(exprNode.args[1].args[0]),
+        ];
         if (v0.initializeGrid || v1.initializeGrid) {
-          gridDoc = buildGridDocFromTerms(v1);
-          columnDoc = buildColumnDocFromTerms(v1);
+          gridDoc = buildGridDocFromTerms({terms});
+          columnDoc = buildColumnDocFromTerms({terms});
         } else {
           gridDoc = gridDoc || buildDocFromTable({
             cols: ["a", "b"],
@@ -209,12 +240,18 @@ export class Transformer extends BasisTransformer {
           type: "area-model",
           ...v0,
           ...v1,
+          terms,
           gridDoc,
           columnDoc,
         };
         resume(err, val);
       });
     });
+    const expandNumber = val => {
+      const parts = val.split("");
+      const terms = parts.reverse().map((part, index) => part * 10 ** index);
+      return terms;
+    };
   }
 
   INITIALIZE_GRID(node, options, resume) {
@@ -282,11 +319,6 @@ export class Transformer extends BasisTransformer {
       const err = [];
       const expr = data.expression || v0;
       const exprNode = Parser.create({allowThousandsSeparator: true}, expr);
-      const terms = [
-        [4, 3, 8],
-        [9, 5, 1],
-        [2, 7, 6],
-      ];
       const html = katex.renderToString(expr, {
         displayMode: true,
         output: "html",
@@ -294,17 +326,11 @@ export class Transformer extends BasisTransformer {
       });
       const val = {
         expression: expr,
-        op: exprNode.op,
-        terms,
+        exprNode,
         html,
       };
       resume(err, val);
     });
-    const expandNumber = val => {
-      const parts = val.split("");
-      const terms = parts.reverse().map((part, index) => part * 10 ** index);
-      return terms;
-    };
   }
 
   COLS(node, options, resume) {
