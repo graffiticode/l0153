@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
-import assert from "assert";
 import './index.css';
 import { Form } from "./components";
 export { Form } from "./components";
@@ -67,7 +66,6 @@ export const View = () => {
   );
 
   if (dataResp.data) {
-    assert(dataResp.data.data === undefined);
     state.apply({
       type: "compile",
       args: dataResp.data,
@@ -85,7 +83,6 @@ export const View = () => {
   );
 
   if (compileResp.data) {
-    assert(compileResp.data.data === undefined);
     state.apply({
       type: "compile",
       args: compileResp.data,
