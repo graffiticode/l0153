@@ -1,1 +1,0 @@
-export { MagicSquare } from "./MagicSquare";
