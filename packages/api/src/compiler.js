@@ -156,55 +156,7 @@ const applyRules = ({ cols, rows }) => {
 const scaleTerms = ({ terms, scale }) =>
       terms.map(row => row.map(val => val + scale));
 
-const makeMagicGrid = ({ order, scale }) => {
-  const terms = scaleTerms({
-    terms: [
-      [4, 3, 8],
-      [9, 5, 1],
-      [2, 7, 6],
-    ],
-    scale,
-  });
-  let gridDoc = buildDocFromTable({
-    cols: ["a", "b", "c"],
-    rows: [
-      {a: "", b: "", c: ""},
-      {a: "", b: "", c: ""},
-      {a: "", b: "", c: ""},
-    ],
-  });
-  return {
-    terms,
-    gridDoc,
-  };
-};
-
 export class Transformer extends BasisTransformer {
-  MAGIC_SQUARE(node, options, resume) {
-    this.visit(node.elts[1], options, async (e1, v1) => {
-      this.visit(node.elts[0], options, async (e0, v0) => {
-        try {
-          const data = options?.data || {};
-          const order = 3;
-          const sum = +v1.exprNode.args[0];
-          assert(sum % order === 0, "invalid sum: " + sum);
-          const scale = sum / 3 - 5;
-          const err = [];
-          const val = {
-            type: "magic-square",
-            ...v0,
-            ...v1,
-            ...makeMagicGrid({ order, scale }),
-          };
-          resume(err, val);
-        } catch (err) {
-          console.log("catch err=" + err);
-          resume([], {err: err.toString()});
-        }
-      });
-    });
-  }
-
   AREA_MODEL(node, options, resume) {
     this.visit(node.elts[1], options, async (e1, v1) => {
       this.visit(node.elts[0], options, async (e0, v0) => {
@@ -237,7 +189,6 @@ export class Transformer extends BasisTransformer {
         }
         const err = [];
         const val = {
-          type: "area-model",
           ...v0,
           ...v1,
           terms,
