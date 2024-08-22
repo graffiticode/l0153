@@ -12,7 +12,7 @@ import { react } from "@nytimes/react-prosemirror";
 
 // import GridEditor from "./GridEditor.js";
 import ColumnMenu from "./ColumnMenu.js";
-import "./AreaModel.css";
+import "./Form.css";
 
 import 'prosemirror-view/style/prosemirror.css';
 import 'prosemirror-menu/style/menu.css';

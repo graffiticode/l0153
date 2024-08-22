@@ -2,7 +2,6 @@ window.gcexports.globalLexicon = {
   "hello" : { "tk": 1, "name": "HELLO", "cls": "function", "length": 1 },
   "initializeGrid" : { "tk": 1, "name": "INITIALIZE_GRID", "cls": "function", "length": 2 },
   "showFeedback" : { "tk": 1, "name": "SHOW_FEEDBACK", "cls": "function", "length": 2 },
-  "magicSquare" : { "tk": 1, "name": "MAGIC_SQUARE", "cls": "function", "length": 2 },
   "areaModel" : { "tk": 1, "name": "AREA_MODEL", "cls": "function", "length": 2 },
   "problemStatement" : { "tk": 1, "name": "PROBLEM_STATEMENT", "cls": "function", "length": 1 },
   "expression" : { "tk": 1, "name": "EXPRESSION", "cls": "function", "length": 1 },

@@ -11,7 +11,7 @@ import { ProseMirror, useNodeViews } from "@nytimes/react-prosemirror";
 import { react } from "@nytimes/react-prosemirror";
 
 import GridMenu from "./GridMenu.js";
-import "./AreaModel.css";
+import "./Form.css";
 
 import 'prosemirror-view/style/prosemirror.css';
 import 'prosemirror-menu/style/menu.css';

@@ -3,7 +3,7 @@ import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 
 import GridEditor from "./GridEditor.js";
 import ColumnEditor from "./ColumnEditor.js";
-import "./AreaModel.css";
+import "./Form.css";
 
 import 'prosemirror-view/style/prosemirror.css';
 import 'prosemirror-menu/style/menu.css';
@@ -16,7 +16,7 @@ function Paragraph({ children }: NodeViewComponentProps) {
   return <p onClick={() => console.log('click')}>{children}</p>;
 }
 
-export function ModelEditor({ state }) {
+function ModelEditor({ state }) {
   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     paragraph: () => ({
       component: Paragraph,
@@ -29,7 +29,7 @@ export function ModelEditor({ state }) {
   );
 }
 
-export function SumEditor({ state }) {
+function SumEditor({ state }) {
   const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
     paragraph: () => ({
       component: Paragraph,
@@ -42,7 +42,7 @@ export function SumEditor({ state }) {
   );
 }
 
-export function AreaModel({ state }) {
+export function Form({ state }) {
   return (
     (state === undefined || state.data === undefined) &&
     <div /> ||

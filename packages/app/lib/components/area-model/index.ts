@@ -1,1 +1,0 @@
-export { AreaModel } from "./AreaModel";

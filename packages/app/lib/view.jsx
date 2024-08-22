@@ -4,8 +4,8 @@ import { createState } from "./lib/state";
 import { compile, getData } from './swr/fetchers';
 import assert from "assert";
 import './index.css';
-import { AreaModel, MagicSquare } from "./components";
-export { AreaModel, MagicSquare } from "./components";
+import { Form } from "./components";
+export { Form } from "./components";
 
 function isNonNullNonEmptyObject(obj) {
   return (
@@ -93,10 +93,8 @@ export const View = () => {
     setRecompile(false);
   }
   return (
-    isNonNullNonEmptyObject(state.data) && (
-      state.data.type === "magic-square" && <MagicSquare state={state} /> ||
-        state.data.type === "area-model" && <AreaModel state={state} /> ||
-        <AreaModel state={state} />
-    ) || <div />
+    isNonNullNonEmptyObject(state.data) &&
+      <Form state={state} />
+      || <div />
   );
 }
