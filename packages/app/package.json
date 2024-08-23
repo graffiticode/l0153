@@ -22,7 +22,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "pack": "npm pack ."
   },
   "dependencies": {
     "@nytimes/react-prosemirror": "^0.6.1",

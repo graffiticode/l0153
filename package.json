@@ -11,7 +11,7 @@
     "start": "npm run -w packages/api start",
     "lint": "eslint test/",
     "lint:fix": "eslint --fix test/",
-    "sync-lrn": "cp -r packages/app/lib/components/* ~/work/artcompiler/learnosity-integrations/question-l0153/src/question/components/"
+    "sync": "npm run -w packages/app pack; cp packages/app/*.tgz ~/work/artcompiler/learnosity-integrations/question-l0153"
   },
   "devDependencies": {
     "eslint": "^8.44.0",
