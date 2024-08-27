@@ -1,4 +1,3 @@
-<import assert from "assert";
 import {
   Checker as BasisChecker,
   Transformer as BasisTransformer,
