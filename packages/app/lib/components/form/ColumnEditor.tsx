@@ -6,11 +6,8 @@ import { useCallback, useState, useEffect } from "react";
 import { debounce } from "lodash";
 
 import { ProseMirror, useNodeViews /*, useEditorEventListener*/ } from "@nytimes/react-prosemirror";
-// import type { NodeViewComponentProps } from "@nytimes/react-prosemirror";
-// import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 import { react } from "@nytimes/react-prosemirror";
 
-// import GridEditor from "./GridEditor.js";
 import ColumnMenu from "./ColumnMenu.js";
 import "./Form.css";
 
@@ -25,8 +22,6 @@ import {
   goToNextCell,
 } from 'prosemirror-tables';
 import { tableEditing, columnResizing, tableNodes /*, fixTables*/ } from 'prosemirror-tables';
-
-// import parse from 'html-react-parser';
 
 const schema = new Schema({
   nodes: baseSchema.spec.nodes.append(
@@ -77,10 +72,6 @@ const schema = new Schema({
   ),
   marks: baseSchema.spec.marks,
 });
-
-// function Paragraph({ children }: NodeViewComponentProps) {
-//   return <p onClick={() => console.log('click')}>{children}</p>;
-// }
 
 const debouncedApply = debounce(({ state, type, args }) => {
   state.apply && state.apply({type, args});
@@ -241,11 +232,12 @@ const applyColumnRules = ({ doc, terms, showFeedback }) => {
   return applyDecoration({doc, cells: coloredCells});
 }
 
-export default function ColumnEditor({ state, reactNodeViews }) {
+export default function ColumnEditor({ state, doc, reactNodeViews }) {
+  const { terms, showFeedback } = state.data;
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ sumMount, setSumMount ] = useState<HTMLDivElement | null>(null);
   const [ sumEditorState, setSumEditorState ] = useState(EditorState.create({
-    doc: createDocNode(state.data.columnDoc),
+    doc: createDocNode(doc),
     schema,
       plugins: [
         columnResizing(),
@@ -255,7 +247,7 @@ export default function ColumnEditor({ state, reactNodeViews }) {
           'Shift-Tab': goToNextCell(-1),
         }),
         react(),
-        columnBackgroundPlugin(state.data),
+        columnBackgroundPlugin({terms, showFeedback}),
       ]
   }));
 
@@ -266,16 +258,16 @@ export default function ColumnEditor({ state, reactNodeViews }) {
     []
   );
 
-  let columnDoc = sumEditorState.doc.toJSON();
+  let sumDoc = sumEditorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       args: {
-        columnDoc,
+        sumDoc,
       },
     });
-  }, [JSON.stringify(columnDoc)]);
+  }, [JSON.stringify(sumDoc)]);
 
   return (
     <>

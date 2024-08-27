@@ -3,19 +3,9 @@ import type { EditorState } from "prosemirror-state";
 import type { ReactNode } from "react";
 import {
   addColumnAfter,
-//   addColumnBefore,
   deleteColumn,
   addRowAfter,
-//   addRowBefore,
   deleteRow,
-//   mergeCells,
-//   splitCell,
-//   setCellAttr,
-//   toggleHeaderRow,
-//   toggleHeaderColumn,
-//   toggleHeaderCell,
-//  goToNextCell,
-//   deleteTable,
 } from 'prosemirror-tables';
 
 import { useEditorEventCallback, useEditorState } from "@nytimes/react-prosemirror";

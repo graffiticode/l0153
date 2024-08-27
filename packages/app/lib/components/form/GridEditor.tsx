@@ -6,8 +6,6 @@ import { useCallback, useState, useEffect } from "react";
 import { debounce } from "lodash";
 
 import { ProseMirror, useNodeViews } from "@nytimes/react-prosemirror";
-//import type { NodeViewComponentProps } from "@nytimes/react-prosemirror";
-//import type { ReactNodeViewConstructor } from "@nytimes/react-prosemirror";
 import { react } from "@nytimes/react-prosemirror";
 
 import GridMenu from "./GridMenu.js";
@@ -267,11 +265,12 @@ const applyModelRules = ({ doc, terms, showFeedback }) => {
   return applyDecoration({doc, cells: coloredCells});
 }
 
-export default function GridEditor({ state, reactNodeViews }) {
+export default function GridEditor({ state, doc, reactNodeViews }) {
+  const { initializeGrid, terms, showFeedback } = state.data;
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ modelMount, setModelMount ] = useState<HTMLDivElement | null>(null);
   const [ modelEditorState, setModelEditorState ] = useState(EditorState.create({
-    doc: createDocNode(state.data.gridDoc),
+    doc: createDocNode(doc),
     schema,
       plugins: [
         columnResizing(),
@@ -281,7 +280,7 @@ export default function GridEditor({ state, reactNodeViews }) {
           'Shift-Tab': goToNextCell(-1),
         }),
         react(),
-        modelBackgroundPlugin(state.data),
+        modelBackgroundPlugin({terms, showFeedback}),
       ]
   }));
 
@@ -292,16 +291,16 @@ export default function GridEditor({ state, reactNodeViews }) {
     []
   );
 
-  let gridDoc = modelEditorState.doc.toJSON();
+  let modelDoc = modelEditorState.doc.toJSON();
   useEffect(() => {
     debouncedApply({
       state,
       type: "change",
       args: {
-        gridDoc,
+        modelDoc,
       },
     });
-  }, [JSON.stringify(gridDoc)]);
+  }, [JSON.stringify(modelDoc)]);
 
   return (
       <div className="">
@@ -314,7 +313,7 @@ export default function GridEditor({ state, reactNodeViews }) {
           nodeViews={nodeViews}
           dispatchTransaction={dispatchTransaction}
         >
-          <GridMenu showGridButtons={!state.data.initializeGrid} />
+          <GridMenu showGridButtons={!initializeGrid} />
           <div ref={setModelMount} className={`w-fit`} />
           {renderNodeViews()}
         </ProseMirror>
