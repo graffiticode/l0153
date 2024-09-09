@@ -233,7 +233,7 @@ const applyColumnRules = ({ doc, terms, showFeedback }) => {
 }
 
 export default function ColumnEditor({ state, doc, reactNodeViews }) {
-  const { terms, showFeedback } = state.data;
+  const { initializeGrid, terms, showFeedback } = state.data;
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ sumMount, setSumMount ] = useState<HTMLDivElement | null>(null);
   const [ sumEditorState, setSumEditorState ] = useState(EditorState.create({
@@ -281,7 +281,7 @@ export default function ColumnEditor({ state, doc, reactNodeViews }) {
           nodeViews={nodeViews}
           dispatchTransaction={dispatchTransaction}
         >
-          <ColumnMenu showGridButtons={true} />
+          <ColumnMenu showGridButtons={!initializeGrid} />
           <div ref={setSumMount} className={`w-fit`} />
           {renderNodeViews()}
         </ProseMirror>
