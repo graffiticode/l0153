@@ -205,19 +205,18 @@ function SumEditor({ state }) {
 }
 
 export function Form({ state }) {
-  const { expression } = state.data;
+  const { expression, problemStatement } = state.data;
   const html = katex.renderToString(expression, {
     displayMode: true,
     output: "html",
     throwOnError: false
   });
-  console.log("Form() html=" + html);
   return (
     (state === undefined || state.data === undefined) &&
     <div /> ||
     <>
       <div className="py-4">
-        { state.data.problemStatement }
+        { problemStatement }
         <div className="p-4 text-4xl font-semibold text-slate-600">
           { parse(html) }
         </div>

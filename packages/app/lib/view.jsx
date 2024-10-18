@@ -27,6 +27,13 @@ export const View = () => {
       setId(params.get("id"));
       const accessToken = params.get("access_token");
       setAccessToken(accessToken);
+      const data = params.get("data");
+      if (data) {
+        state.apply({
+          type: "init",
+          args: JSON.parse(data),
+        });
+      }
     }
   }, [window.location.search]);
 
@@ -40,6 +47,10 @@ export const View = () => {
   const [ state ] = useState(createState({}, (data, { type, args }) => {
     console.log("L0153 state.apply() type=" + type + " args=" + JSON.stringify(args, null, 2));
     switch (type) {
+    case "init":
+      return {
+        ...args,
+      };
     case "compile":
       return {
         ...data,
